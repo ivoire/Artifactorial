@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from Artifactor.models import Artifact
+
+
+admin.site.register(Artifact)
