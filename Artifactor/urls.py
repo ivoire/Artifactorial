@@ -6,6 +6,5 @@ from django.core.urlresolvers import reverse_lazy
 
 
 urlpatterns = patterns('Artifactor.views',
-    url(r'^$', 'index', name='index'),
-    url(r'^post', 'post', name='post'),
-)
+                       url(r'^$', 'index', name='index'),
+                       url(r'^post', 'post', name='post'))

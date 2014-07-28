@@ -23,6 +23,7 @@ class ArtifactForm(ModelForm):
         model = Artifact
         fields = ('path',)
 
+
 @csrf_exempt
 def post(request):
     if request.method == 'POST':
