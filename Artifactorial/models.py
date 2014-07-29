@@ -13,6 +13,9 @@ class Directory(models.Model):
     group = models.ForeignKey(Group, null=True, blank=True)
     is_public = models.BooleanField(default=False)
 
+    class Meta:
+        verbose_name_plural = 'Directories'
+
     def clean(self):
         """
         Artifacts should be owned by one group or one user, not both.
