@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
+import datetime
 import os
 
 
@@ -39,10 +40,17 @@ class Directory(models.Model):
             return "%s (anonymous)" % (self.path)
 
 
+def get_path_name(instance, filename):
+    now = datetime.datetime.now()
+    date_str = now.strftime('%Y/%m/%d/%M')
+    return os.path.normpath('/'.join(['artifact', instance.directory.path,
+                                      date_str, filename]))
+
+
 @python_2_unicode_compatible
 class Artifact(models.Model):
-    path = models.FileField(upload_to='artifacts/%Y/%m/%d')
-    directory = models.ForeignKey(Directory)
+    path = models.FileField(upload_to=get_path_name)
+    directory = models.ForeignKey(Directory, blank=False)
 
     def __str__(self):
         return self.path.name
