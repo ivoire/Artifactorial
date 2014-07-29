@@ -7,13 +7,13 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
-from Artifactor.models import Artifact
+from Artifactorial.models import Artifact
 
 
 def index(request):
     artifacts = Artifact.objects.all()
 
-    return render_to_response('Artifactor/index.html',
+    return render_to_response('Artifactorial/index.html',
                               {'artifacts': artifacts},
                               context_instance=RequestContext(request))
 

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from Artifactor.models import Artifact
+from Artifactorial.models import Artifact
 
 
 admin.site.register(Artifact)

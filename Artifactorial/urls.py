@@ -5,6 +5,6 @@ from django.conf.urls import include, patterns, url
 from django.core.urlresolvers import reverse_lazy
 
 
-urlpatterns = patterns('Artifactor.views',
+urlpatterns = patterns('Artifactorial.views',
                        url(r'^$', 'index', name='index'),
                        url(r'^post', 'post', name='post'))
