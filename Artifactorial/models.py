@@ -42,7 +42,7 @@ class Directory(models.Model):
 
 def get_path_name(instance, filename):
     now = datetime.datetime.now()
-    date_str = now.strftime('%Y/%m/%d/%M')
+    date_str = now.strftime('%Y/%m/%d/%H/%M')
     return os.path.normpath('/'.join(['artifact', instance.directory.path,
                                       date_str, filename]))
 
