@@ -26,8 +26,8 @@ class Directory(models.Model):
         if self.user is None and self.group is None and not self.is_public:
             raise ValidationError("An anonymous directory should be public")
         if not os.path.normpath(self.path) == self.path:
-            raise ValidationError({'path': ['Expecting a normalized path and '\
-                                            'without leading slash']})
+            raise ValidationError({'path': ['Expecting a normalized path and '
+                                            'no leading slashes']})
         if not os.path.isabs(self.path):
             raise ValidationError({'path': ['Expecting an absolute path']})
 
