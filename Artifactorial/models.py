@@ -41,16 +41,19 @@ class Directory(models.Model):
 
 
 def get_path_name(instance, filename):
-    now = datetime.datetime.now()
-    date_str = now.strftime('%Y/%m/%d/%H/%M')
-    return os.path.normpath('/'.join(['artifact', instance.directory.path,
-                                      date_str, filename]))
+    base_path = ''
+    if not instance.is_permanent:
+        now = datetime.datetime.now()
+        base_path = now.strftime('%Y/%m/%d/%H/%M')
+    return os.path.normpath('/'.join([instance.directory.path,
+                                      base_path, filename])).strip('/')
 
 
 @python_2_unicode_compatible
 class Artifact(models.Model):
     path = models.FileField(upload_to=get_path_name)
     directory = models.ForeignKey(Directory, blank=False)
+    is_permanent = models.BooleanField(default=False)
 
     def __str__(self):
         return self.path.name

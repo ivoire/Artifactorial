@@ -22,7 +22,7 @@ def index(request):
 class ArtifactForm(ModelForm):
     class Meta:
         model = Artifact
-        fields = ('path', 'directory', )
+        fields = ('path', 'directory', 'is_permanent')
 
 
 @csrf_exempt
