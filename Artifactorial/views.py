@@ -4,7 +4,7 @@
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from django.forms import ModelForm
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -49,6 +49,7 @@ def post(request):
 
 
 def get(request, filename):
+    # TODO: only show the authorized elements
     # Is it a file or a path
     if filename[-1] == '/':
         dirname = os.path.dirname(filename)
