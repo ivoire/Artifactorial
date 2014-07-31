@@ -3,6 +3,7 @@
 
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
+from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
@@ -12,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from Artifactorial.models import Artifact, Directory
 
 import os
+import urllib
 
 
 def index(request):
@@ -92,6 +94,13 @@ def get(request, filename):
                                    'files': art_list},
                                   context_instance=RequestContext(request))
     else:
+        # Serving the file
+        # TODO: use django-sendfile for more performances
+        # TODO: find the right mime-type to return
         artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
-        data = "%s (%d)" % (artifact.path.name, artifact.path.size)
-        return HttpResponse(data)
+        artifact_filename = urllib.quote(artifact.path.name.split('/')[-1])
+        wrapper = FileWrapper(artifact.path.file)
+        response = HttpResponse(wrapper, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename=%s' % artifact_filename
+        response['Content-Length'] = artifact.path.size
+        return response
