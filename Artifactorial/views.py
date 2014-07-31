@@ -49,14 +49,9 @@ def post(request):
 
 
 def get(request, filename):
-    data=''
     # Is it a file or a path
     if filename[-1] == '/':
         dirname = os.path.dirname(filename)
-        directories = Directory.objects.filter(Q(path__startswith="%s" % (dirname)) | Q(path=dirname))
-        if not directories:
-            # TODO: Look for pseudo directories with files
-            raise Http404
 
         dirname_length = len(dirname)
         # Special case for the root directory
@@ -64,6 +59,10 @@ def get(request, filename):
             dirname_length = 0
 
         dir_set = set()
+        art_set = set()
+
+        # List real directories
+        directories = Directory.objects.filter(Q(path__startswith="%s" % (dirname)) | Q(path=dirname))
         for directory in directories:
             if directory.path != dirname:
                 # Sub directory => print the next elements in the path
@@ -74,11 +73,16 @@ def get(request, filename):
                 except Exception:
                     dir_set.add(full_dir_name)
 
+        # List artifacts and pseudo directories
         artifacts = Artifact.objects.filter(path__startswith=filename.lstrip('/'))
-        art_set = set()
         for artifact in artifacts:
-            # TODO: handle pseudo directories
-            art_set.add(artifact.path.name[dirname_length:])
+            relative_name = artifact.path.name[dirname_length:]
+            # Add pseudo directory (if the name contains a '/')
+            try:
+                index = relative_name.index('/')
+                dir_set.add(relative_name[:index])
+            except Exception:
+                art_set.add(artifact.path.name[dirname_length:])
 
         return render_to_response('Artifactorial/list.html',
                                   {'directory': dirname, 'directories': dir_set,
