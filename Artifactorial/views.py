@@ -59,6 +59,10 @@ def get(request, filename):
             raise Http404
 
         dirname_length = len(dirname)
+        # Special case for the root directory
+        if dirname == '/':
+            dirname_length = 0
+
         dir_set = set()
         for directory in directories:
             if directory.path != dirname:
