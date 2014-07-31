@@ -60,7 +60,7 @@ def get(request, filename):
             dirname_length = 0
 
         dir_set = set()
-        art_set = set()
+        art_list = list()
 
         # List real directories
         directories = Directory.objects.filter(Q(path__startswith="%s" % (dirname)) | Q(path=dirname))
@@ -83,11 +83,13 @@ def get(request, filename):
                 index = relative_name.index('/')
                 dir_set.add(relative_name[:index])
             except Exception:
-                art_set.add(artifact.path.name[dirname_length:])
+                art_list.append((artifact.path.name[dirname_length:],
+                                 artifact.path.size))
 
         return render_to_response('Artifactorial/list.html',
-                                  {'directory': dirname, 'directories': dir_set,
-                                   'files': art_set},
+                                  {'directory': dirname,
+                                   'directories': dir_set,
+                                   'files': art_list},
                                   context_instance=RequestContext(request))
     else:
         artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))

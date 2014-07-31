@@ -21,8 +21,8 @@
     {% for file in files %}
       <tr>
         <td><img src="/static/Artifactorial/img/unknown.png" alt="[&nbsp;&nbsp;&nbsp;]"></td>
-        <td><a href="{{ file }}">{{ file }}</a></td>
-        <td align="right">??</td>
+        <td><a href="{{ file.0 }}">{{ file.0 }}</a></td>
+        <td align="right">{{ file.1|filesizeformat }}</td>
       </tr>
     {% endfor %}
   </table>
