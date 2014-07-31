@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
-from Artifactorial.models import Artifact, Directory
+from Artifactorial.models import AuthToken, Artifact, Directory
 
 import os
 import urllib
@@ -35,10 +35,27 @@ def post(request):
     if request.method == 'POST':
         # Find the directory by name
         directory_path = request.POST.get('directory', '')
-        directory_id = get_object_or_404(Directory, path=directory_path)
-        request.POST['directory'] = directory_id.id
+        directory = get_object_or_404(Directory, path=directory_path)
+        request.POST['directory'] = directory.id
 
-        # TODO: validate the user, group or public rights
+        # Is the directory private ?
+        if not directory.is_anonymous():
+            # Get the current token
+            try:
+                token = AuthToken.objects.get(secret=request.POST.get('token', ''),
+                                              user__username=request.POST.get('user', ''))
+            except AuthToken.DoesNotExist:
+                raise PermissionDenied
+
+            # The directory belongs to a user ...
+            if directory.user:
+                if directory.user.id != token.user.id:
+                    raise PermissionDenied
+            # ... or a group
+            else:
+                if directory.group not in token.user.groups.all():
+                    raise PermissionDenied
+
         # Validate the updated form
         form = ArtifactForm(request.POST, request.FILES)
         if form.is_valid():
