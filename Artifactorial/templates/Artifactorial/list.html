@@ -1,0 +1,30 @@
+<html>
+<head>
+  <title>Index of {{ directory }}</title>
+</head>
+<body>
+  <h1>Index of {{ directory }}</h1>
+  <table>
+    <tr>
+      <th valign="top"></th>
+      <th>Name</th>
+      <th>Size</th>
+    </tr>
+    <tr><th colspan="3"><hr></th></tr>
+    {% for dir in directories %}
+      <tr>
+        <td><img src="/static/Artifactorial/img/folder.png" alt="[DIR]"></td>
+        <td><a href="{{ dir }}/">{{ dir }}</a></td>
+        <td align="right">-</td>
+      </tr>
+    {% endfor %}
+    {% for file in files %}
+      <tr>
+        <td><img src="/static/Artifactorial/img/unknown.png" alt="[&nbsp;&nbsp;&nbsp;]"></td>
+        <td><a href="{{ file }}">{{ file }}</a></td>
+        <td align="right">??</td>
+      </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
