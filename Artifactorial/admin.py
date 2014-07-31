@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from Artifactorial.models import Artifact, Directory
+from Artifactorial.models import AuthToken, Artifact, Directory
 
 
 class ArtifactAdmin(admin.ModelAdmin):
@@ -10,5 +10,6 @@ class ArtifactAdmin(admin.ModelAdmin):
 class DirectoryAdmin(admin.ModelAdmin):
     list_display = ('path', 'user', 'group', 'is_public')
 
+admin.site.register(AuthToken)
 admin.site.register(Artifact, ArtifactAdmin)
 admin.site.register(Directory, DirectoryAdmin)

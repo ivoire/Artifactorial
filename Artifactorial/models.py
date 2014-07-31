@@ -3,8 +3,24 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
+import binascii
 import datetime
 import os
+
+
+def random_hash():
+    """ Create a random string of size 32 """
+    return binascii.b2a_hex(os.urandom(16))
+
+
+@python_2_unicode_compatible
+class AuthToken(models.Model):
+    user = models.ForeignKey(User, blank=False)
+    secret = models.TextField(max_length=32, unique=True, default=random_hash)
+    description = models.TextField(null=False, blank=True)
+
+    def __str__(self):
+        return "%s (%s)" % (self.user.get_full_name(), self.description)
 
 
 @python_2_unicode_compatible
@@ -33,11 +49,14 @@ class Directory(models.Model):
 
     def __str__(self):
         if self.user is not None:
-            return "%s (%s)" % (self.path, self.user.get_fullname())
+            return "%s (%s)" % (self.path, self.user.get_full_name())
         elif self.group is not None:
             return "%s (%s)" % (self.path, self.group)
         else:
             return "%s (anonymous)" % (self.path)
+
+    def is_anonymous(self):
+        return (self.user is None and self.group is None)
 
 
 def get_path_name(instance, filename):
