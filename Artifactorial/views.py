@@ -69,13 +69,12 @@ def post(request):
 
 
 def get_current_user(request):
-    # TODO: look at the request.user object
     try:
         token = AuthToken.objects.get(secret=request.GET.get('token', ''),
                                       user__username=request.GET.get('user', ''))
         return token.user
     except AuthToken.DoesNotExist:
-        return AnonymousUser()
+        return request.user
 
 
 def get(request, filename):
