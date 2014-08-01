@@ -58,6 +58,16 @@ class Directory(models.Model):
     def is_anonymous(self):
         return (self.user is None and self.group is None)
 
+    def is_visible_to(self, user):
+        if self.is_public:
+            return True
+        if self.user is not None:
+            return self.user == user
+        elif self.group is not None:
+            return self.group in user.groups.all()
+        else:
+            return True
+
 
 def get_path_name(instance, filename):
     base_path = ''
@@ -76,3 +86,6 @@ class Artifact(models.Model):
 
     def __str__(self):
         return self.path.name
+
+    def is_visible_to(self, user):
+        return self.directory.is_visible_to(user)

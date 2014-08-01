@@ -2,6 +2,7 @@
 # vim: set ts=4
 
 from django.db.models import Q
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
@@ -67,7 +68,20 @@ def post(request):
         raise PermissionDenied
 
 
+def get_current_user(request):
+    # TODO: look at the request.user object
+    try:
+        token = AuthToken.objects.get(secret=request.GET.get('token', ''),
+                                      user__username=request.GET.get('user', ''))
+        return token.user
+    except AuthToken.DoesNotExist:
+        return AnonymousUser()
+
+
 def get(request, filename):
+    # Get the current user
+    user = get_current_user(request)
+
     # TODO: only show the authorized elements
     # Is it a file or a path
     if filename[-1] == '/':
@@ -84,6 +98,8 @@ def get(request, filename):
         # List real directories
         directories = Directory.objects.filter(Q(path__startswith="%s" % (dirname)) | Q(path=dirname))
         for directory in directories:
+            if not directory.is_visible_to(user):
+                continue
             if directory.path != dirname:
                 # Sub directory => print the next elements in the path
                 full_dir_name = directory.path[dirname_length+1:]
@@ -96,6 +112,8 @@ def get(request, filename):
         # List artifacts and pseudo directories
         artifacts = Artifact.objects.filter(path__startswith=filename.lstrip('/'))
         for artifact in artifacts:
+            if not artifact.is_visible_to(user):
+                continue
             relative_name = artifact.path.name[dirname_length:]
             # Add pseudo directory (if the name contains a '/')
             try:
@@ -115,6 +133,9 @@ def get(request, filename):
         # TODO: use django-sendfile for more performances
         # TODO: find the right mime-type to return
         artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
+        if not artifact.is_visible_to(user):
+            raise PermissionDenied
+
         artifact_filename = urllib.quote(artifact.path.name.split('/')[-1])
         wrapper = FileWrapper(artifact.path.file)
         response = HttpResponse(wrapper, content_type='text/plain')
