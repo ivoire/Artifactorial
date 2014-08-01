@@ -15,14 +15,6 @@ import os
 import urllib
 
 
-def index(request):
-    artifacts = Artifact.objects.all()
-
-    return render_to_response('Artifactorial/index.html',
-                              {'artifacts': artifacts},
-                              context_instance=RequestContext(request))
-
-
 class ArtifactForm(ModelForm):
     class Meta:
         model = Artifact
