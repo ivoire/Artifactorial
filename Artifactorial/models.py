@@ -29,6 +29,8 @@ class Directory(models.Model):
     user = models.ForeignKey(User, null=True, blank=True)
     group = models.ForeignKey(Group, null=True, blank=True)
     is_public = models.BooleanField(default=False)
+    quota = models.IntegerField(blank=False, default=1024*1024*1024,
+                                help_text='Size limit in Bytes')
 
     class Meta:
         verbose_name_plural = 'Directories'
@@ -67,6 +69,13 @@ class Directory(models.Model):
             return self.group in user.groups.all()
         else:
             return True
+
+    def size(self):
+        size = 0
+        for artifact in self.artifact_set.all():
+            size += artifact.path.size
+        return size
+
 
 
 def get_path_name(instance, filename):

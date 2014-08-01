@@ -2,11 +2,10 @@
 # vim: set ts=4
 
 from django.db.models import Q
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -57,6 +56,11 @@ def post(request):
                 if directory.group not in token.user.groups.all():
                     raise PermissionDenied
 
+        # Check the quota
+        if 'path' in request.FILES:
+            if request.FILES['path'].size + directory.size() > directory.quota:
+                return HttpResponseForbidden()
+
         # Validate the updated form
         form = ArtifactForm(request.POST, request.FILES)
         if form.is_valid():
@@ -81,7 +85,6 @@ def get(request, filename):
     # Get the current user
     user = get_current_user(request)
 
-    # TODO: only show the authorized elements
     # Is it a file or a path
     if filename[-1] == '/':
         dirname = os.path.dirname(filename)

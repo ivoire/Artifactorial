@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.template.defaultfilters import filesizeformat
 
 from Artifactorial.models import AuthToken, Artifact, Directory
 
@@ -8,7 +9,11 @@ class ArtifactAdmin(admin.ModelAdmin):
 
 
 class DirectoryAdmin(admin.ModelAdmin):
-    list_display = ('path', 'user', 'group', 'is_public')
+    def current_size(self, obj):
+        return "%s / %s" % (filesizeformat(obj.size()), filesizeformat(obj.quota))
+
+    list_display = ('path', 'user', 'group', 'is_public', 'current_size')
+
 
 admin.site.register(AuthToken)
 admin.site.register(Artifact, ArtifactAdmin)
