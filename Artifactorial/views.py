@@ -2,7 +2,6 @@
 # vim: set ts=4
 
 from django.db.models import Q
-from django.core.exceptions import PermissionDenied
 from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
@@ -45,16 +44,16 @@ def post(request):
                 token = AuthToken.objects.get(secret=request.POST.get('token', ''),
                                               user__username=request.POST.get('user', ''))
             except AuthToken.DoesNotExist:
-                raise PermissionDenied
+                return HttpResponseForbidden()
 
             # The directory belongs to a user ...
             if directory.user:
                 if directory.user.id != token.user.id:
-                    raise PermissionDenied
+                    return HttpResponseForbidden()
             # ... or a group
             else:
                 if directory.group not in token.user.groups.all():
-                    raise PermissionDenied
+                    return HttpResponseForbidden()
 
         # Check the quota
         if 'path' in request.FILES:
@@ -67,9 +66,9 @@ def post(request):
             artifact = form.save()
             return HttpResponse(artifact.path.url, content_type='text/plain')
         else:
-            raise PermissionDenied
+            return HttpResponseBadRequest()
     else:
-        raise PermissionDenied
+        return HttpResponseForbidden()
 
 
 def get_current_user(request):
@@ -136,7 +135,7 @@ def get(request, filename):
         # TODO: find the right mime-type to return
         artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
         if not artifact.is_visible_to(user):
-            raise PermissionDenied
+            return HttpResponseForbidden()
 
         artifact_filename = urllib.quote(artifact.path.name.split('/')[-1])
         wrapper = FileWrapper(artifact.path.file)
