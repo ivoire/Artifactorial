@@ -2,9 +2,10 @@ from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.timezone import datetime, utc
 
 import binascii
-import datetime
+from datetime import timedelta
 import os
 
 
@@ -76,12 +77,21 @@ class Directory(models.Model):
             size += artifact.path.size
         return size
 
+    def purge_old_files(self, interval, permanent):
+        now = datetime.utcnow().replace(tzinfo=utc)
+        older_than = now - timedelta(days=interval)
+        query = self.artifact_set.filter(created_at__lt=older_than)
+        # Don't remove permanent files by default
+        if not permanent:
+            query = query.exclude(is_permanent=True)
+
+        query.delete()
 
 
 def get_path_name(instance, filename):
     base_path = ''
     if not instance.is_permanent:
-        now = datetime.datetime.now()
+        now = datetime.now()
         base_path = now.strftime('%Y/%m/%d/%H/%M')
     return os.path.normpath('/'.join([instance.directory.path,
                                       base_path, filename])).strip('/')
@@ -92,6 +102,7 @@ class Artifact(models.Model):
     path = models.FileField(upload_to=get_path_name)
     directory = models.ForeignKey(Directory, blank=False)
     is_permanent = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.path.name

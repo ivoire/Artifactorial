@@ -5,12 +5,13 @@ from Artifactorial.models import AuthToken, Artifact, Directory
 
 
 class ArtifactAdmin(admin.ModelAdmin):
-    list_display = ('path', 'directory', 'is_permanent')
+    list_display = ('path', 'directory', 'is_permanent', 'created_at')
 
 
 class DirectoryAdmin(admin.ModelAdmin):
     def current_size(self, obj):
-        return "%s / %s" % (filesizeformat(obj.size()), filesizeformat(obj.quota))
+        return "%s / %s" % (filesizeformat(obj.size()),
+                            filesizeformat(obj.quota))
 
     list_display = ('path', 'user', 'group', 'is_public', 'current_size')
 
