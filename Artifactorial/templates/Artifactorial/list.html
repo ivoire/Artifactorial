@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>{% load static %}
+<html lang="en">
 <head>
   <title>Index of {{ directory }}</title>
 </head>
@@ -13,14 +14,14 @@
     <tr><th colspan="3"><hr></th></tr>
     {% for dir in directories %}
       <tr>
-        <td><img src="/static/Artifactorial/img/folder.png" alt="[DIR]"></td>
+        <td><img src="{% get_static_prefix %}Artifactorial/img/folder.png" alt="[DIR]"></td>
         <td><a href="{{ dir }}/">{{ dir }}</a></td>
         <td align="right">-</td>
       </tr>
     {% endfor %}
     {% for file in files %}
       <tr>
-        <td><img src="/static/Artifactorial/img/unknown.png" alt="[&nbsp;&nbsp;&nbsp;]"></td>
+        <td><img src="{% get_static_prefix %}Artifactorial/img/unknown.png" alt="[&nbsp;&nbsp;&nbsp;]"></td>
         <td><a href="{{ file.0 }}">{{ file.0 }}</a></td>
         <td align="right">{{ file.1|filesizeformat }}</td>
       </tr>
