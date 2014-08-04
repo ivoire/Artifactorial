@@ -5,5 +5,4 @@ from django.conf.urls import patterns, url
 
 
 urlpatterns = patterns('Artifactorial.views',
-                       url(r'^post', 'post', name='post'),
-                       url(r'^get(?P<filename>/.*)$', 'get', name='get'))
+                       url(r'^(?P<filename>.*)$', 'root', name='root'))
