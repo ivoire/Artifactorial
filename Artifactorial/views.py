@@ -100,7 +100,7 @@ def root(request, filename):
 
     elif request.method == 'POST':
         # Find the directory by name
-        directory_path = request.POST.get('directory', '')
+        directory_path = '/' + filename
         directory = get_object_or_404(Directory, path=directory_path)
         request.POST['directory'] = directory.id
 
