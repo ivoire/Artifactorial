@@ -30,6 +30,8 @@ class Directory(models.Model):
     user = models.ForeignKey(User, null=True, blank=True)
     group = models.ForeignKey(Group, null=True, blank=True)
     is_public = models.BooleanField(default=False)
+    ttl = models.IntegerField(blank=False, default=90,
+                              help_text="Files TTL in days")
     quota = models.IntegerField(blank=False, default=1024*1024*1024,
                                 help_text='Size limit in Bytes')
 
@@ -77,14 +79,23 @@ class Directory(models.Model):
             size += artifact.path.size
         return size
 
-    def purge_old_files(self, interval, permanent):
+    def clean_old_files(self):
+        # A negative TTL mean that we should not remove old files
+        if self.ttl < 0:
+            return
         now = datetime.utcnow().replace(tzinfo=utc)
-        older_than = now - timedelta(days=interval)
+        older_than = now - timedelta(days=self.ttl)
+        self.artifact_set.filter(created_at__lt=older_than)\
+                         .exclude(is_permanent=True)\
+                         .delete()
+
+    def purge_old_files(self, ttl, permanent):
+        now = datetime.utcnow().replace(tzinfo=utc)
+        older_than = now - timedelta(days=ttl)
         query = self.artifact_set.filter(created_at__lt=older_than)
         # Don't remove permanent files by default
         if not permanent:
             query = query.exclude(is_permanent=True)
-
         query.delete()
 
 

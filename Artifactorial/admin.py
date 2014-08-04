@@ -13,7 +13,7 @@ class DirectoryAdmin(admin.ModelAdmin):
         return "%s / %s" % (filesizeformat(obj.size()),
                             filesizeformat(obj.quota))
 
-    list_display = ('path', 'user', 'group', 'is_public', 'current_size')
+    list_display = ('path', 'user', 'group', 'is_public', 'ttl', 'current_size')
 
 
 admin.site.register(AuthToken)
