@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set ts=4
+from __future__ import unicode_literals
 
 from django.conf.urls import patterns, url
 

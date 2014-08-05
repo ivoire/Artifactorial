@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # vim: set ts=4
 
+from __future__ import unicode_literals
+
 from django.db.models import Q
 from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
