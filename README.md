@@ -95,6 +95,10 @@ provider the user and token as a GET parameter like:
 
     curl 'http://example.com/artifactorial/home/debian/private/debian-sid.qcow2&user=debian&token=123456789'
 
+To mark an artifact as *permanent*, just upload it with:
+
+    curl -F 'path=@path_to_the_file.ext' -F 'is_permanent=1' http://example.com/artifactorial/pub
+
 
 Administration
 --------------
