@@ -98,8 +98,8 @@ def root(request, filename):
 
             return render_to_response('Artifactorial/list.html',
                                       {'directory': dirname,
-                                       'directories': dir_set,
-                                       'files': art_list},
+                                       'directories': sorted(dir_set),
+                                       'files': sorted(art_list)},
                                       context_instance=RequestContext(request))
         else:
             # Serving the file
