@@ -40,7 +40,6 @@ class Command(BaseCommand):
                     action="store_true",
                     help='Also remove permanent files'))
 
-
     def handle(self, *args, **kwargs):
         for directory in Directory.objects.all():
             directory.purge_old_files(kwargs['TTL'], kwargs['all'])
