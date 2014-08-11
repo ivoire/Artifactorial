@@ -29,6 +29,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from Artifactorial.models import AuthToken, Artifact, Directory
 
+import mimetypes
 import os
 import urllib
 
@@ -104,15 +105,18 @@ def root(request, filename):
         else:
             # Serving the file
             # TODO: use django-sendfile for more performances
-            # TODO: find the right mime-type to return
             artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
             if not artifact.is_visible_to(user):
                 return HttpResponseForbidden()
 
             artifact_filename = urllib.quote(artifact.path.name.split('/')[-1])
             wrapper = FileWrapper(artifact.path.file)
-            response = HttpResponse(wrapper, content_type='text/plain')
-            response['Content-Disposition'] = 'attachment; filename=%s' % artifact_filename
+
+            # Guess the mimetype
+            mime = mimetypes.guess_type(artifact.path.name)
+            response = HttpResponse(wrapper,
+                                    content_type=mime[0] if mime[0] else 'text/plain')
+
             response['Content-Length'] = artifact.path.size
             return response
 
