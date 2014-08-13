@@ -65,8 +65,6 @@ class Directory(models.Model):
         """
         if self.user is not None and self.group is not None:
             raise ValidationError("Cannot be owned by user and group")
-        if self.user is None and self.group is None and not self.is_public:
-            raise ValidationError("An anonymous directory should be public")
         if not os.path.normpath(self.path) == self.path:
             raise ValidationError({'path': ['Expecting a normalized path and '
                                             'no leading slashes']})
@@ -82,6 +80,14 @@ class Directory(models.Model):
             return "%s (anonymous)" % (self.path)
 
     def is_visible_to(self, user):
+        """
+        Check that the current directory is visible to the current user
+        A public directory is visible to all.
+        An anonymous directory is visible to all active users.
+
+        :param user: the user to check
+        :return: True if the directory is visible to the user, False otherwise.
+        """
         if self.is_public:
             return True
         if self.user is not None:
@@ -89,7 +95,7 @@ class Directory(models.Model):
         elif self.group is not None:
             return self.group in user.groups.all()
         else:
-            True
+            return user.is_active()
 
     def is_writable_to(self, user):
         """
