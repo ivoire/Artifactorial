@@ -20,12 +20,16 @@
 from __future__ import unicode_literals
 
 from django.core.management.base import BaseCommand
+from Artifactorial import get_version
 from Artifactorial.models import Directory
 
 
 class Command(BaseCommand):
     args = None
     help = 'Clean old files'
+
+    def get_version(self):
+        return get_version()
 
     def handle(self, *args, **kwargs):
         for directory in Directory.objects.all():

@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 from django.core.management.base import BaseCommand
+from Artifactorial import get_version
 from Artifactorial.models import Directory
 
 from optparse import make_option
@@ -39,6 +40,9 @@ class Command(BaseCommand):
                     default=False,
                     action="store_true",
                     help='Also remove permanent files'))
+
+    def get_version(self):
+        return get_version()
 
     def handle(self, *args, **kwargs):
         for directory in Directory.objects.all():

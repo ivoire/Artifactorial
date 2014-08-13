@@ -18,5 +18,8 @@
 # along with Artifactorial.  If not, see <http://www.gnu.org/licenses/>
 
 from __future__ import unicode_literals
-
 import Artifactorial.receivers
+
+
+def get_version():
+    return "0.2-git"
