@@ -81,12 +81,24 @@ class Directory(models.Model):
         else:
             return "%s (anonymous)" % (self.path)
 
-    def is_anonymous(self):
-        return (self.user is None and self.group is None)
-
     def is_visible_to(self, user):
         if self.is_public:
             return True
+        if self.user is not None:
+            return self.user == user
+        elif self.group is not None:
+            return self.group in user.groups.all()
+        else:
+            True
+
+    def is_writable_to(self, user):
+        """
+        Check that the user can write to the current directory
+        An anonymous directory is writable to all.
+
+        :param user: the user to check
+        :return: True if the user can write to this directory, False otherwise.
+        """
         if self.user is not None:
             return self.user == user
         elif self.group is not None:

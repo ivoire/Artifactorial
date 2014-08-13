@@ -40,10 +40,10 @@ class ArtifactForm(ModelForm):
         fields = ('path', 'directory', 'is_permanent')
 
 
-def get_current_user(request):
+def get_current_user(request, username, token):
     try:
-        token = AuthToken.objects.get(secret=request.GET.get('token', ''),
-                                      user__username=request.GET.get('user', ''))
+        token = AuthToken.objects.get(secret=token,
+                                      user__username=username)
         return token.user
     except AuthToken.DoesNotExist:
         return request.user
@@ -51,7 +51,9 @@ def get_current_user(request):
 
 def _get(request, filename):
     # Get the current user
-    user = get_current_user(request)
+    user = get_current_user(request,
+                            request.GET.get('user', ''),
+                            request.GET.get('token', ''))
 
     # The URL regexp removes the leading slash, so add it back
     filename = '/' + filename
@@ -125,23 +127,13 @@ def _post(request, filename):
     directory = get_object_or_404(Directory, path=directory_path)
     request.POST['directory'] = directory.id
 
-    # Is the directory private ?
-    if not directory.is_anonymous():
-        # Get the current token
-        try:
-            token = AuthToken.objects.get(secret=request.POST.get('token', ''),
-                                          user__username=request.POST.get('user', ''))
-        except AuthToken.DoesNotExist:
-            return HttpResponseForbidden()
+    user = get_current_user(request,
+                            request.POST.get('user', ''),
+                            request.POST.get('token', ''))
 
-        # The directory belongs to a user ...
-        if directory.user:
-            if directory.user.id != token.user.id:
-                return HttpResponseForbidden()
-        # ... or a group
-        else:
-            if directory.group not in token.user.groups.all():
-                return HttpResponseForbidden()
+    # Is the directory writable to this user?
+    if not directory.is_writable_to(user):
+        return HttpResponseForbidden()
 
     # Check the quota
     if 'path' in request.FILES:
