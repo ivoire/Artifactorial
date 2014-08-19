@@ -29,6 +29,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from Artifactorial.models import AuthToken, Artifact, Directory
 
+import base64
+import hashlib
 import mimetypes
 import os
 import urllib
@@ -121,6 +123,28 @@ def _get(request, filename):
         return response
 
 
+def _head(request, filename):
+    user = get_current_user(request,
+                            request.GET.get('user', ''),
+                            request.GET.get('token', ''))
+    artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
+    if not artifact.is_visible_to(user):
+        return HttpResponseForbidden()
+
+    # Build the response
+    response = HttpResponse('')
+    mime = mimetypes.guess_type(artifact.path.name)
+    response['Content-Type'] = mime[0] if mime[0] else 'text/plain'
+    response['Content-Length'] = artifact.path.size
+    # Compute the MD5
+    md5 = hashlib.md5()
+    for chunk in artifact.path.chunks():
+        md5.update(chunk)
+    response['Content-MD5'] = base64.b64encode(md5.hexdigest())
+
+    return response
+
+
 def _post(request, filename):
     # Find the directory by name
     directory_path = '/' + filename
@@ -153,7 +177,9 @@ def _post(request, filename):
 def root(request, filename):
     if request.method == 'GET':
         return _get(request, filename)
+    elif request.method == 'HEAD':
+        return _head(request, filename)
     elif request.method == 'POST':
         return _post(request, filename)
     else:
-        return HttpResponseNotAllowed(['GET', 'POST'])
+        return HttpResponseNotAllowed(['GET', 'HEAD', 'POST'])
