@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from django.db.models import Q
 from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -156,4 +156,4 @@ def root(request, filename):
     elif request.method == 'POST':
         return _post(request, filename)
     else:
-        return HttpResponseBadRequest()
+        return HttpResponseNotAllowed(['GET', 'POST'])
