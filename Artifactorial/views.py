@@ -42,10 +42,9 @@ class ArtifactForm(ModelForm):
         fields = ('path', 'directory', 'is_permanent')
 
 
-def get_current_user(request, username, token):
+def get_current_user(request, token):
     try:
-        token = AuthToken.objects.get(secret=token,
-                                      user__username=username)
+        token = AuthToken.objects.get(secret=token)
         return token.user
     except AuthToken.DoesNotExist:
         return request.user
@@ -54,7 +53,6 @@ def get_current_user(request, username, token):
 def _get(request, filename):
     # Get the current user
     user = get_current_user(request,
-                            request.GET.get('user', ''),
                             request.GET.get('token', ''))
 
     # The URL regexp removes the leading slash, so add it back
@@ -125,7 +123,6 @@ def _get(request, filename):
 
 def _head(request, filename):
     user = get_current_user(request,
-                            request.GET.get('user', ''),
                             request.GET.get('token', ''))
     artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
     if not artifact.is_visible_to(user):
@@ -152,7 +149,6 @@ def _post(request, filename):
     request.POST['directory'] = directory.id
 
     user = get_current_user(request,
-                            request.POST.get('user', ''),
                             request.POST.get('token', ''))
 
     # Is the directory writable to this user?
