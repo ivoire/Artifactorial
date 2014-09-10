@@ -95,7 +95,7 @@ class Directory(models.Model):
         elif self.group is not None:
             return self.group in user.groups.all()
         else:
-            return user.is_active()
+            return user.is_active
 
     def is_writable_to(self, user):
         """
