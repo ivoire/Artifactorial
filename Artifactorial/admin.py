@@ -24,9 +24,13 @@ from django.template.defaultfilters import filesizeformat
 
 from Artifactorial.models import AuthToken, Artifact, Directory
 
+import datetime
+
 
 class ArtifactAdmin(admin.ModelAdmin):
-    list_display = ('path', 'directory', 'is_permanent', 'created_at')
+    def ttl(self, obj):
+        return obj.created_at + datetime.timedelta(days=obj.directory.ttl)
+    list_display = ('path', 'directory', 'is_permanent', 'created_at', 'ttl')
 
 
 class DirectoryAdmin(admin.ModelAdmin):
