@@ -34,7 +34,6 @@ import base64
 import hashlib
 import mimetypes
 import os
-import urllib
 
 
 class ArtifactForm(ModelForm):
@@ -110,7 +109,6 @@ def _get(request, filename):
         if not artifact.is_visible_to(user):
             return HttpResponseForbidden()
 
-        artifact_filename = urllib.quote(artifact.path.name.split('/')[-1])
         wrapper = FileWrapper(artifact.path.file)
 
         # Guess the mimetype
