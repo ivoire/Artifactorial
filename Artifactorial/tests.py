@@ -19,6 +19,22 @@
 
 from __future__ import unicode_literals
 
+from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.test.client import Client
 
-# Create your tests here.
+
+class GETTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_empty(self):
+        response = self.client.get(reverse('root', args=['']))
+        self.assertEqual(response.status_code, 200)
+        ctx = response.context
+        self.assertEqual(ctx['directory'], '/')
+        self.assertEqual(ctx['directories'], [])
+        self.assertEqual(ctx['files'], [])
+
+        response = self.client.get(reverse('root', args=['/pub']))
+        self.assertEqual(response.status_code, 404)
