@@ -21,10 +21,12 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.http import QueryDict
 from django.test import TestCase
 from django.test.client import Client
 
 from Artifactorial.models import Directory, AuthToken
+
 
 class BasicTest(TestCase):
     def setUp(self):
@@ -119,24 +121,28 @@ class GETTest(TestCase):
         self.assertEqual(ctx['directories'], [])
         self.assertEqual(ctx['files'], [])
 
-        response = self.client.get("%s?token=%s" % (reverse('root', args=['private/']),
-                                                    self.token1.secret))
+        q = QueryDict('', mutable=True)
+        q.update({'token': self.token1.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+                                              q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/private')
         self.assertEqual(ctx['directories'], ['user1'])
         self.assertEqual(ctx['files'], [])
 
-        response = self.client.get("%s?token=%s" % (reverse('root', args=['private/']),
-                                                    self.token1bis.secret))
+        q.update({'token': self.token1bis.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+                                              q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/private')
         self.assertEqual(ctx['directories'], ['user1'])
         self.assertEqual(ctx['files'], [])
 
-        response = self.client.get("%s?token=%s" % (reverse('root', args=['private/']),
-                                                    self.token2.secret))
+        q.update({'token': self.token2.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+                                              q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/private')
