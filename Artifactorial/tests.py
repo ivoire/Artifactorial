@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.core.urlresolvers import reverse
 from django.http import QueryDict
 from django.test import TestCase
@@ -80,18 +80,34 @@ class GETTest(TestCase):
         self.user2 = User.objects.create_user('azertyuiop2',
                                               'django.test@project.org',
                                               '12789azertyuiop')
+        self.user3 = User.objects.create_user('plop',
+                                              'plop@project.org',
+                                              'plop')
+        self.user4 = User.objects.create_user('foo',
+                                              'bar@project.org',
+                                              'bar')
+        self.user4.is_active = False
+        self.user4.save()
+        self.group = Group.objects.create(name='user 2 and3')
+        self.group.user_set.add(self.user2)
+        self.group.user_set.add(self.user3)
+        self.group.save()
 
         self.token1 = AuthToken.objects.create(user=self.user1)
         self.token1bis = AuthToken.objects.create(user=self.user1)
         self.token2 = AuthToken.objects.create(user=self.user2)
+        self.token3 = AuthToken.objects.create(user=self.user3)
+        self.token4 = AuthToken.objects.create(user=self.user4)
 
         self.directories = {}
         self.directories['/pub'] = Directory.objects.create(path='/pub', user=self.user1, is_public=True)
         self.directories['/pub/debian'] = Directory.objects.create(path='/pub/debian', user=self.user1, is_public=True)
         self.directories['/private/user1'] = Directory.objects.create(path='/private/user1', user=self.user1, is_public=False)
         self.directories['/private/user2'] = Directory.objects.create(path='/private/user2', user=self.user2, is_public=False)
+        self.directories['/private/group'] = Directory.objects.create(path='/private/group', group=self.group, is_public=False)
+        self.directories['/anonymous'] = Directory.objects.create(path='/anonymous', is_public=False)
 
-    def test_directories(self):
+    def test_pub_directories(self):
         response = self.client.get(reverse('root', args=['']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -121,6 +137,7 @@ class GETTest(TestCase):
         self.assertEqual(ctx['directories'], [])
         self.assertEqual(ctx['files'], [])
 
+    def test_private_directories(self):
         q = QueryDict('', mutable=True)
         q.update({'token': self.token1.secret})
         response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
@@ -146,5 +163,57 @@ class GETTest(TestCase):
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/private')
-        self.assertEqual(ctx['directories'], ['user2'])
+        self.assertEqual(ctx['directories'], ['group', 'user2'])
         self.assertEqual(ctx['files'], [])
+
+        q.update({'token': self.token3.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 200)
+        ctx = response.context
+        self.assertEqual(ctx['directory'], '/private')
+        self.assertEqual(ctx['directories'], ['group'])
+        self.assertEqual(ctx['files'], [])
+
+    def test_anonymous_directories(self):
+        response = self.client.get(reverse('root', args=['']))
+        self.assertEqual(response.status_code, 200)
+        ctx = response.context
+        self.assertEqual(ctx['directory'], '/')
+        self.assertEqual(ctx['directories'], ['pub'])
+        self.assertEqual(ctx['files'], [])
+
+        q = QueryDict('', mutable=True)
+        q.update({'token': self.token1.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 200)
+        ctx = response.context
+        self.assertEqual(ctx['directory'], '/')
+        self.assertEqual(ctx['directories'], ['anonymous', 'private', 'pub'])
+        self.assertEqual(ctx['files'], [])
+
+        q.update({'token': self.token2.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 200)
+        ctx = response.context
+        self.assertEqual(ctx['directory'], '/')
+        self.assertEqual(ctx['directories'], ['anonymous', 'private', 'pub'])
+
+        q.update({'token': self.token3.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 200)
+        ctx = response.context
+        self.assertEqual(ctx['directory'], '/')
+        self.assertEqual(ctx['directories'], ['anonymous', 'private', 'pub'])
+
+        # Invalid users should not be able to access private nor anonymous directories
+        q.update({'token': self.token4.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 200)
+        ctx = response.context
+        self.assertEqual(ctx['directory'], '/')
+        self.assertEqual(ctx['directories'], ['pub'])
