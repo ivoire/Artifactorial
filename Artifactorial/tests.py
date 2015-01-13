@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.contrib.auth.models import Group, User
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import QueryDict
 from django.test import TestCase
@@ -359,6 +360,9 @@ class GETTest(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
 
         q.update({'token': self.token2.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['private/user1/my-cv.pdf']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 403)
         response = self.client.get("%s?%s" % (reverse('root', args=['private/user2/foo.jpg']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
@@ -366,6 +370,7 @@ class GETTest(TestCase):
         self.assertEqual(response['Content-Length'], '12')
         self.assertEqual(response['Content-Type'], 'image/jpeg')
 
+        # Test private group access
         q.update({'token': self.token2.secret})
         response = self.client.get("%s?%s" % (reverse('root', args=['private/group/foo/bar.doc']),
                                               q.urlencode()))
@@ -382,6 +387,7 @@ class GETTest(TestCase):
         self.assertEqual(response['Content-Length'], '13')
         self.assertEqual(response['Content-Type'], 'application/msword')
 
+        # Test anonymous access
         q.update({'token': self.token1.secret})
         response = self.client.get("%s?%s" % (reverse('root', args=['anonymous/a/b.c']),
                                               q.urlencode()))
@@ -405,3 +411,45 @@ class GETTest(TestCase):
         self.assertEqual(list(response.streaming_content), [b'int main(){return 0;}'])
         self.assertEqual(response['Content-Length'], '21')
         self.assertEqual(response['Content-Type'], 'text/x-csrc')
+
+        # Test inactive user access
+        q.update({'token': self.token4.secret})
+        response = self.client.get("%s?%s" % (reverse('root', args=['anonymous/a/b.c']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get("%s?%s" % (reverse('root', args=['private/user2/foo.jpg']),
+                                              q.urlencode()))
+        self.assertEqual(response.status_code, 403)
+
+
+class ModelTest(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user('azertyuiop',
+                                              'django.test@project.org',
+                                              '12789azertyuiop')
+        self.group = Group.objects.create(name='user 1')
+        self.group.user_set.add(self.user1)
+        self.group.save()
+
+        self.dir1 = Directory.objects.create(path='/pub', user=self.user1, is_public=True)
+        self.dir2 = Directory.objects.create(path='/pub/groups', group=self.group, is_public=True)
+        self.dir3 = Directory.objects.create(path='/private', is_public=True)
+
+    def test_directories_string(self):
+        self.assertEqual(str(self.dir1), "%s (%s)" % ('/pub', self.user1.get_full_name()))
+        self.assertEqual(str(self.dir2), "%s (%s)" % ('/pub/groups', self.group))
+        self.assertEqual(str(self.dir3), "%s (anonymous)" % ('/private'))
+
+    def test_directory_clean(self):
+        self.dir1.clean()
+        self.dir2.clean()
+        self.dir3.clean()
+
+        d_in = Directory.objects.create(path='/invalid', user=self.user1, group=self.group)
+        self.assertRaises(ValidationError, d_in.clean)
+        d_in = Directory.objects.create(path='/in/../valid/', user=self.user1)
+        self.assertRaises(ValidationError, d_in.clean)
+        d_in = Directory.objects.create(path='/invalid/', user=self.user1)
+        self.assertRaises(ValidationError, d_in.clean)
+        d_in = Directory.objects.create(path='invalid', user=self.user1)
+        self.assertRaises(ValidationError, d_in.clean)
