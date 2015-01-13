@@ -137,7 +137,7 @@ def _head(request, filename):
     md5 = hashlib.md5()
     for chunk in artifact.path.chunks():
         md5.update(chunk)
-    response['Content-MD5'] = base64.b64encode(md5.hexdigest())
+    response['Content-MD5'] = base64.b64encode(md5.hexdigest().encode('utf-8'))
 
     return response
 
