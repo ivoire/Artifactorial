@@ -17,9 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Artifactorial.  If not, see <http://www.gnu.org/licenses/>
 
+import atexit
 import os
+import shutil
+import tempfile
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+# Create a temp directory for the test data
+BASE_DIR = tempfile.mkdtemp()
+
+# Remove it at exit
+@atexit.register
+def remove_tempdir():
+    shutil.rmtree(BASE_DIR)
+
 
 SECRET_KEY = '00000000000000000000000000000000000000000000000000'
 DEBUG = True
