@@ -29,6 +29,7 @@ from django.test.client import Client
 
 from Artifactorial.models import Artifact, Directory, AuthToken
 
+import base64
 import os
 
 
@@ -75,7 +76,7 @@ class BasicTest(TestCase):
         self.assertEqual(response.status_code, 405)
 
 
-class GETTest(TestCase):
+class GETHEADTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user1 = User.objects.create_user('azertyuiop',
@@ -421,6 +422,29 @@ class GETTest(TestCase):
                                               q.urlencode()))
         self.assertEqual(response.status_code, 403)
 
+    def test_public_head(self):
+        # Create public files
+        a1 = Artifact.objects.create(path='pub/head/test.txt',
+                                     directory=self.directories['/pub/debian'])
+        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'head'))
+        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
+            f_out.write(b'some sort of test data')
+
+        response = self.client.head(reverse('root', args=['pub/head/test.txt']))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(base64.b64decode(response['Content-MD5']),
+                         b'600ae9d6304b5d939e3dc10191536c58')
+
+    def test_private_head(self):
+        a1 = Artifact.objects.create(path='private/user1/head/test.txt',
+                                     directory=self.directories['/private/user1'])
+        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user1', 'head'))
+        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
+            f_out.write(b'some sort of test data')
+        response = self.client.head(reverse('root', args=['private/user1/head/test.txt']))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.get('Content-MD5', None), None)
+
 
 class ModelTest(TestCase):
     def setUp(self):
@@ -453,3 +477,21 @@ class ModelTest(TestCase):
         self.assertRaises(ValidationError, d_in.clean)
         d_in = Directory.objects.create(path='invalid', user=self.user1)
         self.assertRaises(ValidationError, d_in.clean)
+
+    def test_directory_size(self):
+        self.assertEqual(self.dir1.size(), 0)
+        self.assertEqual(self.dir2.size(), 0)
+        self.assertEqual(self.dir3.size(), 0)
+
+        # Add some files
+        a1 = Artifact.objects.create(path='pub/test.txt',
+                                     directory=self.dir1)
+        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
+            f_out.write(b'qsgqhqhhqethsryjdfyjkdgukylgyilghlulul')
+        self.assertEqual(self.dir1.size(), 38)
+
+        a2 = Artifact.objects.create(path='pub/test2.txt',
+                                     directory=self.dir1)
+        with open(os.path.join(settings.MEDIA_ROOT, a2.path.name), 'wb') as f_out:
+            f_out.write(b'0123456789')
+        self.assertEqual(self.dir1.size(), 48)
