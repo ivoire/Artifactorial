@@ -8,6 +8,10 @@ python:
 
 install:
     - pip install -q -r requirements.txt --use-mirrors
+    - pip install -q coveralls --use-mirrors
 
 script:
-    - ./tests/manage.py test Artifactorial
+    - coverage run --branch --source=Artifactorial tests/manage.py test Artifactorial
+
+after_success:
+    coveralls
