@@ -77,10 +77,9 @@ def _get(request, filename):
             if directory.path != dirname:
                 # Sub directory => print the next elements in the path
                 full_dir_name = directory.path[dirname_length+1:]
-                try:
-                    index = full_dir_name.index('/')
-                    dir_set.add(full_dir_name[:index])
-                except Exception:
+                if '/' in full_dir_name:
+                    dir_set.add(full_dir_name[:full_dir_name.index('/')])
+                else:
                     dir_set.add(full_dir_name)
 
         # List artifacts and pseudo directories
@@ -90,10 +89,9 @@ def _get(request, filename):
                 continue
             relative_name = artifact.path.name[dirname_length:]
             # Add pseudo directory (if the name contains a '/')
-            try:
-                index = relative_name.index('/')
-                dir_set.add(relative_name[:index])
-            except Exception:
+            if '/' in relative_name:
+                dir_set.add(relative_name[:relative_name.index('/')])
+            else:
                 art_list.append((artifact.path.name[dirname_length:],
                                  artifact.path.size))
 
