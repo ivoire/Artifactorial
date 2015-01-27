@@ -22,8 +22,14 @@ from __future__ import unicode_literals
 from django.db.models import Q
 from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
-from django.http import HttpResponse, HttpResponseBadRequest,\
-    HttpResponseForbidden, HttpResponseNotAllowed, StreamingHttpResponse
+from django.http import (
+  Http404,
+  HttpResponse,
+  HttpResponseBadRequest,
+  HttpResponseForbidden,
+  HttpResponseNotAllowed,
+  StreamingHttpResponse
+)
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -68,6 +74,7 @@ def _get(request, filename):
 
         dir_set = set()
         art_list = list()
+        in_real_directory = False
 
         # List real directories
         directories = Directory.objects.filter(Q(path__startswith="%s" % (dirname)) | Q(path=dirname))
@@ -81,6 +88,8 @@ def _get(request, filename):
                     dir_set.add(full_dir_name[:full_dir_name.index('/')])
                 else:
                     dir_set.add(full_dir_name)
+            else:
+                in_real_directory = True
 
         # List artifacts and pseudo directories
         artifacts = Artifact.objects.filter(path__startswith=filename.lstrip('/'))
@@ -95,6 +104,9 @@ def _get(request, filename):
                 art_list.append((artifact.path.name[dirname_length:],
                                  artifact.path.size))
 
+        # Raise an error if the directory does not exist
+        if not dir_set and not art_list and not in_real_directory:
+            raise Http404
         return render_to_response('Artifactorial/list.html',
                                   {'directory': dirname,
                                    'directories': sorted(dir_set),

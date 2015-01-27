@@ -39,11 +39,7 @@ class BasicTest(TestCase):
 
     def test_get_empty(self):
         response = self.client.get(reverse('root', args=['']))
-        self.assertEqual(response.status_code, 200)
-        ctx = response.context
-        self.assertEqual(ctx['directory'], '/')
-        self.assertEqual(ctx['directories'], [])
-        self.assertEqual(ctx['files'], [])
+        self.assertEqual(response.status_code, 404)
 
         response = self.client.get(reverse('root', args=['pub']))
         self.assertEqual(response.status_code, 404)
@@ -145,11 +141,7 @@ class GETHEADTest(TestCase):
 
         # Check that we don't see anything in the private directory
         response = self.client.get(reverse('root', args=['private/']))
-        self.assertEqual(response.status_code, 200)
-        ctx = response.context
-        self.assertEqual(ctx['directory'], '/private')
-        self.assertEqual(ctx['directories'], [])
-        self.assertEqual(ctx['files'], [])
+        self.assertEqual(response.status_code, 404)
 
     def test_private_directories(self):
         q = QueryDict('', mutable=True)
