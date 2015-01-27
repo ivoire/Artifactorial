@@ -1,0 +1,12 @@
+{
+  "directory": "{{ directory }}",
+  "directories": [{% for dir in directories %}
+    "{{ dir }}"{% if not forloop.last %},{% endif %}{% endfor %}
+  ],
+  "files": [{% for file in files %}
+  {
+    "path": "{{ file.0 }}",
+    "size": {{ file.1 }}
+  }{% if not forloop.last %},{%endif %}{% endfor %}
+  ]
+}

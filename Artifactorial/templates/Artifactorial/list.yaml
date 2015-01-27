@@ -1,0 +1,6 @@
+directory: {{ directory }}
+directories:{% for dir in directories %}
+  {{ dir }}{% endfor %}
+files:{% for file in files %}
+  name: {{ file.0 }}
+  size: {{ file.1 }}{% endfor %}

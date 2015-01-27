@@ -100,6 +100,11 @@ To mark an artifact as *permanent*, just upload it with:
 
     curl -F 'path=@path_to_the_file.ext' -F 'is_permanent=1' http://example.com/artifactorial/pub
 
+Programs can browse Artifactorial by using JSON and YAML outputs with:
+
+    curl 'http://example.com/artifactorial/home/?format=json'
+    curl 'http://example.com/artifactorial/home/?format=yaml'
+
 
 Administration
 --------------

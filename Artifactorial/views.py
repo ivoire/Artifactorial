@@ -107,11 +107,21 @@ def _get(request, filename):
         # Raise an error if the directory does not exist
         if not dir_set and not art_list and not in_real_directory:
             raise Http404
-        return render_to_response('Artifactorial/list.html',
+
+        # Return the right formating (only html, json or yaml)
+        formating = request.GET.get('format', 'html')
+        content_types = {'html': 'text/html',
+                         'json': 'application/json',
+                         'yaml': 'application/yaml'}
+        if formating not in ['html', 'json', 'yaml']:
+            return HttpResponseBadRequest()
+        return render_to_response("Artifactorial/list.%s" % formating,
                                   {'directory': dirname,
                                    'directories': sorted(dir_set),
                                    'files': sorted(art_list)},
-                                  context_instance=RequestContext(request))
+                                  context_instance=RequestContext(request),
+                                  content_type=content_types[formating])
+
     else:
         # Serving the file
         # TODO: use django-sendfile for more performances
