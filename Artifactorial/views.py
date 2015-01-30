@@ -163,6 +163,8 @@ def _head(request, filename):
 
 
 def _post(request, filename):
+    # Remove the trailing '/' if needed
+    filename = filename.rstrip('/')
     # Find the directory by name
     directory_path = '/' + filename
     directory = get_object_or_404(Directory, path=directory_path)
