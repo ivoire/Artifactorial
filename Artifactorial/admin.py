@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.template.defaultfilters import filesizeformat
 
-from Artifactorial.models import AuthToken, Artifact, Directory
+from Artifactorial.models import AuthToken, Artifact, Directory, Share
 
 import datetime
 
@@ -45,3 +45,4 @@ class DirectoryAdmin(admin.ModelAdmin):
 admin.site.register(AuthToken)
 admin.site.register(Artifact, ArtifactAdmin)
 admin.site.register(Directory, DirectoryAdmin)
+admin.site.register(Share)

@@ -34,7 +34,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
-from Artifactorial.models import AuthToken, Artifact, Directory
+from Artifactorial.models import AuthToken, Artifact, Directory, Share
 
 import base64
 import hashlib
@@ -190,7 +190,7 @@ def _post(request, filename):
 
 
 @csrf_exempt
-def root(request, filename):
+def artifacts(request, filename):
     if request.method == 'GET':
         return _get(request, filename)
     elif request.method == 'HEAD':
@@ -199,3 +199,19 @@ def root(request, filename):
         return _post(request, filename)
     else:
         return HttpResponseNotAllowed(['GET', 'HEAD', 'POST'])
+
+
+def shared(request, token):
+    share = get_object_or_404(Share, token=token)
+    artifact = share.artifact
+
+    wrapper = FileWrapper(artifact.path.file)
+
+    # Guess the mimetype
+    mime = mimetypes.guess_type(artifact.path.name)
+    response = StreamingHttpResponse(wrapper,
+                                     content_type=mime[0] if mime[0]
+                                     else 'text/plain')
+
+    response['Content-Length'] = artifact.path.size
+    return response

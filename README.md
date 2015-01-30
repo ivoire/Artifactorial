@@ -80,31 +80,36 @@ Using Artifactorial
 
 To view the artifacts, just browse to the url where Artifactorial was installed:
 
-    firefox http://example.com/artifactorial/
+    firefox http://example.com/artifacts/
 
 To upload a file into a anonymous directory called */pub*, run:
 
-    curl -F 'path=@path_to_the_file.ext' http://example.com/artifactorial/pub
+    curl -F 'path=@path_to_the_file.ext' http://example.com/artifacts/pub
 
 To upload a file into the directory */home/debian* owned by the user *debian*, run:
 
-    curl -F 'path=@debian-sid.iso' -F 'token=123456789' http://example.com/artifactorial/home/debian
+    curl -F 'path=@debian-sid.iso' -F 'token=123456789' http://example.com/artifacts/home/debian
 
 When you upload a file, Artifactorial will return the URL that can be used to
 download it back. If this artifact is in a private directory, you would have to
 provide the token as a GET parameter like:
 
-    curl 'http://example.com/artifactorial/home/debian/private/debian-sid.qcow2?token=123456789'
+    curl 'http://example.com/artifacts/home/debian/private/debian-sid.qcow2?token=123456789'
 
 To mark an artifact as *permanent*, just upload it with:
 
-    curl -F 'path=@path_to_the_file.ext' -F 'is_permanent=1' http://example.com/artifactorial/pub
+    curl -F 'path=@path_to_the_file.ext' -F 'is_permanent=1' http://example.com/artifacts/pub
 
 Programs can browse Artifactorial by using JSON and YAML outputs with:
 
-    curl 'http://example.com/artifactorial/home/?format=json'
-    curl 'http://example.com/artifactorial/home/?format=yaml'
+    curl 'http://example.com/artifacts/home/?format=json'
+    curl 'http://example.com/artifacts/home/?format=yaml'
 
+It's also possile to create a link to share a specific artifact with someone
+without any right on the directory that contains the artifact.
+The artifcat can then be downloaded using
+
+    curl 'http://example.com/shared/123456789abcdef123456abcdef12345'
 
 Administration
 --------------

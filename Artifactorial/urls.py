@@ -23,4 +23,5 @@ from django.conf.urls import patterns, url
 
 
 urlpatterns = patterns('Artifactorial.views',
-                       url(r'^(?P<filename>.*)$', 'root', name='root'))
+                       url(r'^artifacts/(?P<filename>.*)$', 'artifacts', name='artifacts'),
+                       url(r'^shared/(?P<token>.*)$', 'shared', name='shared'))

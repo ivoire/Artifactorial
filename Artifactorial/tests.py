@@ -38,37 +38,37 @@ class BasicTest(TestCase):
         self.client = Client()
 
     def test_get_empty(self):
-        response = self.client.get(reverse('root', args=['']))
+        response = self.client.get(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.get(reverse('root', args=['pub']))
+        response = self.client.get(reverse('artifacts', args=['pub']))
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.get(reverse('root', args=['test']))
+        response = self.client.get(reverse('artifacts', args=['test']))
         self.assertEqual(response.status_code, 404)
 
     def test_head_empty(self):
-        response = self.client.head(reverse('root', args=['']))
+        response = self.client.head(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.head(reverse('root', args=['pub']))
+        response = self.client.head(reverse('artifacts', args=['pub']))
         self.assertEqual(response.status_code, 404)
 
     def test_post_empty(self):
-        response = self.client.post(reverse('root', args=['']), data={})
+        response = self.client.post(reverse('artifacts', args=['']), data={})
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.post(reverse('root', args=['pub']), data={})
+        response = self.client.post(reverse('artifacts', args=['pub']), data={})
         self.assertEqual(response.status_code, 404)
 
     def test_others(self):
-        response = self.client.put(reverse('root', args=['']))
+        response = self.client.put(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 405)
-        response = self.client.delete(reverse('root', args=['']))
+        response = self.client.delete(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 405)
-        response = self.client.options(reverse('root', args=['']))
+        response = self.client.options(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 405)
-        response = self.client.patch(reverse('root', args=['']))
+        response = self.client.patch(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 405)
 
 
@@ -118,21 +118,21 @@ class GETHEADTest(TestCase):
                                                                   is_public=False)
 
     def test_pub_directories(self):
-        response = self.client.get(reverse('root', args=['']))
+        response = self.client.get(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/')
         self.assertEqual(ctx['directories'], ['pub'])
         self.assertEqual(ctx['files'], [])
 
-        response = self.client.get(reverse('root', args=['pub/']))
+        response = self.client.get(reverse('artifacts', args=['pub/']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/pub')
         self.assertEqual(ctx['directories'], ['debian'])
         self.assertEqual(ctx['files'], [])
 
-        response = self.client.get(reverse('root', args=['pub/debian/']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/pub/debian')
@@ -140,13 +140,13 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [])
 
         # Check that we don't see anything in the private directory
-        response = self.client.get(reverse('root', args=['private/']))
+        response = self.client.get(reverse('artifacts', args=['private/']))
         self.assertEqual(response.status_code, 404)
 
     def test_private_directories(self):
         q = QueryDict('', mutable=True)
         q.update({'token': self.token1.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -155,7 +155,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [])
 
         q.update({'token': self.token1bis.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -164,7 +164,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [])
 
         q.update({'token': self.token2.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -173,7 +173,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [])
 
         q.update({'token': self.token3.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -182,7 +182,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [])
 
     def test_anonymous_directories(self):
-        response = self.client.get(reverse('root', args=['']))
+        response = self.client.get(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/')
@@ -191,7 +191,7 @@ class GETHEADTest(TestCase):
 
         q = QueryDict('', mutable=True)
         q.update({'token': self.token1.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -200,7 +200,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [])
 
         q.update({'token': self.token2.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -209,7 +209,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [])
 
         q.update({'token': self.token3.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -219,7 +219,7 @@ class GETHEADTest(TestCase):
 
         # Invalid users should not be able to access private nor anonymous directories
         q.update({'token': self.token4.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
@@ -249,21 +249,21 @@ class GETHEADTest(TestCase):
             f_out.write(b'debian sid is way better')
 
         # Test directory listing
-        response = self.client.get(reverse('root', args=['pub/debian/']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/pub/debian')
         self.assertEqual(ctx['directories'], ['2015'])
         self.assertEqual(ctx['files'], [])
 
-        response = self.client.get(reverse('root', args=['pub/debian/2015/']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/2015/']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/pub/debian/2015')
         self.assertEqual(ctx['directories'], ['01', '02'])
         self.assertEqual(ctx['files'], [])
 
-        response = self.client.get(reverse('root', args=['pub/debian/2015/01/']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/2015/01/']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/pub/debian/2015/01')
@@ -272,7 +272,7 @@ class GETHEADTest(TestCase):
                                         ('debian-7.iso', 22),
                                         ('debian-sid.iso', 24)])
 
-        response = self.client.get(reverse('root', args=['pub/debian/2015/02/']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/2015/02/']))
         self.assertEqual(response.status_code, 200)
         ctx = response.context
         self.assertEqual(ctx['directory'], '/pub/debian/2015/02')
@@ -280,19 +280,19 @@ class GETHEADTest(TestCase):
         self.assertEqual(ctx['files'], [('debian-sid2.iso', 24)])
 
         # Test public file access
-        response = self.client.get(reverse('root', args=['pub/debian/2015/01/debian-6.iso']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/2015/01/debian-6.iso']))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'debian 6 iso'])
         self.assertEqual(response['Content-Length'], '12')
         self.assertEqual(response['Content-Type'], 'application/x-iso9660-image')
 
-        response = self.client.get(reverse('root', args=['pub/debian/2015/01/debian-7.iso']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/2015/01/debian-7.iso']))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'debian 7 iso is better'])
         self.assertEqual(response['Content-Length'], '22')
         self.assertEqual(response['Content-Type'], 'application/x-iso9660-image')
 
-        response = self.client.get(reverse('root', args=['pub/debian/2015/02/debian-sid2.iso']))
+        response = self.client.get(reverse('artifacts', args=['pub/debian/2015/02/debian-sid2.iso']))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'debian sid is way better'])
         self.assertEqual(response['Content-Length'], '24')
@@ -322,22 +322,22 @@ class GETHEADTest(TestCase):
             f_out.write(b'int main(){return 0;}')
 
         # Test that anonymous users can't have access
-        response = self.client.get(reverse('root', args=['private/user1/my-cv.pdf']))
+        response = self.client.get(reverse('artifacts', args=['private/user1/my-cv.pdf']))
         self.assertEqual(response.status_code, 403)
-        response = self.client.get(reverse('root', args=['private/user2/foo.jpg']))
+        response = self.client.get(reverse('artifacts', args=['private/user2/foo.jpg']))
         self.assertEqual(response.status_code, 403)
-        response = self.client.get(reverse('root', args=['private/group/foo/bar.doc']))
+        response = self.client.get(reverse('artifacts', args=['private/group/foo/bar.doc']))
         self.assertEqual(response.status_code, 403)
-        response = self.client.get(reverse('root', args=['anonymous/a/b.c']))
+        response = self.client.get(reverse('artifacts', args=['anonymous/a/b.c']))
         self.assertEqual(response.status_code, 403)
-        response = self.client.get(reverse('root', args=['anonymous/a/b.cpp']))
+        response = self.client.get(reverse('artifacts', args=['anonymous/a/b.cpp']))
         self.assertEqual(response.status_code, 404)
 
         # Test owner access
         q = QueryDict('', mutable=True)
 
         q.update({'token': self.token1.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/user1/my-cv.pdf']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/user1/my-cv.pdf']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'I\'m awsome'])
@@ -345,7 +345,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
 
         q.update({'token': self.token1bis.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/user1/my-cv.pdf']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/user1/my-cv.pdf']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'I\'m awsome'])
@@ -353,10 +353,10 @@ class GETHEADTest(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
 
         q.update({'token': self.token2.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/user1/my-cv.pdf']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/user1/my-cv.pdf']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 403)
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/user2/foo.jpg']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/user2/foo.jpg']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'Nice picture'])
@@ -365,7 +365,7 @@ class GETHEADTest(TestCase):
 
         # Test private group access
         q.update({'token': self.token2.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/group/foo/bar.doc']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/group/foo/bar.doc']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'One empty doc'])
@@ -373,7 +373,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(response['Content-Type'], 'application/msword')
 
         q.update({'token': self.token3.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/group/foo/bar.doc']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/group/foo/bar.doc']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'One empty doc'])
@@ -382,7 +382,7 @@ class GETHEADTest(TestCase):
 
         # Test anonymous access
         q.update({'token': self.token1.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['anonymous/a/b.c']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['anonymous/a/b.c']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'int main(){return 0;}'])
@@ -390,7 +390,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(response['Content-Type'], 'text/x-csrc')
 
         q.update({'token': self.token2.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['anonymous/a/b.c']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['anonymous/a/b.c']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'int main(){return 0;}'])
@@ -398,7 +398,7 @@ class GETHEADTest(TestCase):
         self.assertEqual(response['Content-Type'], 'text/x-csrc')
 
         q.update({'token': self.token3.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['anonymous/a/b.c']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['anonymous/a/b.c']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.streaming_content), [b'int main(){return 0;}'])
@@ -407,10 +407,10 @@ class GETHEADTest(TestCase):
 
         # Test inactive user access
         q.update({'token': self.token4.secret})
-        response = self.client.get("%s?%s" % (reverse('root', args=['anonymous/a/b.c']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['anonymous/a/b.c']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 403)
-        response = self.client.get("%s?%s" % (reverse('root', args=['private/user2/foo.jpg']),
+        response = self.client.get("%s?%s" % (reverse('artifacts', args=['private/user2/foo.jpg']),
                                               q.urlencode()))
         self.assertEqual(response.status_code, 403)
 
@@ -422,7 +422,7 @@ class GETHEADTest(TestCase):
         with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
             f_out.write(b'some sort of test data')
 
-        response = self.client.head(reverse('root', args=['pub/head/test.txt']))
+        response = self.client.head(reverse('artifacts', args=['pub/head/test.txt']))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(base64.b64decode(response['Content-MD5']),
                          b'600ae9d6304b5d939e3dc10191536c58')
@@ -433,7 +433,7 @@ class GETHEADTest(TestCase):
         os.makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user1', 'head'))
         with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
             f_out.write(b'some sort of test data')
-        response = self.client.head(reverse('root', args=['private/user1/head/test.txt']))
+        response = self.client.head(reverse('artifacts', args=['private/user1/head/test.txt']))
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.get('Content-MD5', None), None)
 
