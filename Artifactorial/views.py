@@ -118,7 +118,8 @@ def _get(request, filename):
         return render_to_response("Artifactorial/list.%s" % formating,
                                   {'directory': dirname,
                                    'directories': sorted(dir_set),
-                                   'files': sorted(art_list)},
+                                   'files': sorted(art_list),
+                                   'token': request.GET.get('token', None)},
                                   context_instance=RequestContext(request),
                                   content_type=content_types[formating])
 

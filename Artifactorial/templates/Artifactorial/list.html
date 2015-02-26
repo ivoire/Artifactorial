@@ -16,14 +16,14 @@
     {% for dir in directories %}
       <tr>
         <td><img src="{% get_static_prefix %}Artifactorial/img/folder.png" alt="[DIR]"></td>
-        <td><a href="{{ dir }}/">{{ dir }}</a></td>
+        <td><a href="{{ dir }}/{% if token %}?token={{ token }}{% endif %}">{{ dir }}</a></td>
         <td align="right">-</td>
       </tr>
     {% endfor %}
     {% for file in files %}
       <tr>
         <td><img src="{% get_static_prefix %}Artifactorial/img/unknown.png" alt="[&nbsp;&nbsp;&nbsp;]"></td>
-        <td><a href="{{ file.0 }}">{{ file.0 }}</a></td>
+        <td><a href="{{ file.0 }}{% if token %}?token={{ token }}{% endif %}">{{ file.0 }}</a></td>
         <td align="right">{{ file.1|filesizeformat }}</td>
       </tr>
     {% endfor %}
