@@ -22,4 +22,4 @@ import Artifactorial.receivers
 
 
 def get_version():
-    return "0.2-git"
+    return "0.2"
