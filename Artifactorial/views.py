@@ -29,7 +29,7 @@ from django.http import (
   HttpResponseNotAllowed,
   FileResponse
 )
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
@@ -114,13 +114,12 @@ def _get(request, filename):
                          'yaml': 'application/yaml'}
         if formating not in ['html', 'json', 'yaml']:
             return HttpResponseBadRequest()
-        return render_to_response("Artifactorial/list.%s" % formating,
-                                  {'directory': dirname,
-                                   'directories': sorted(dir_set),
-                                   'files': sorted(art_list),
-                                   'token': request.GET.get('token', None)},
-                                  context_instance=RequestContext(request),
-                                  content_type=content_types[formating])
+        return render(request, "Artifactorial/list.%s" % formating,
+                      {'directory': dirname,
+                       'directories': sorted(dir_set),
+                       'files': sorted(art_list),
+                       'token': request.GET.get('token', None)},
+                      content_type=content_types[formating])
 
     else:
         # Serving the file
