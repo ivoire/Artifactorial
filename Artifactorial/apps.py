@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set ts=4
 
-# Copyright 2014 Rémi Duraffort
+# Copyright 2016 Rémi Duraffort
 # This file is part of Artifactorial.
 #
 # Artifactorial is free software: you can redistribute it and/or modify
@@ -19,12 +19,12 @@
 
 from __future__ import unicode_literals
 
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
-from Artifactorial.models import Artifact
+from django.apps import AppConfig
 
 
-@receiver(post_delete, sender=Artifact)
-def artifact_post_delete(sender, **kwargs):
-    artifact = kwargs['instance']
-    artifact.path.storage.delete(artifact.path.path)
+class ArtifactorialConfig(AppConfig):
+    name = "Artifactorial"
+    verbose_name = "Artifactorial"
+
+    def ready(self):
+        import Artifactorial.signals
