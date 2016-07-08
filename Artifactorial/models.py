@@ -79,6 +79,10 @@ class Directory(models.Model):
         else:
             return "%s (anonymous)" % (self.path)
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ("artifacts", [self.path[1:] + '/'])
+
     def is_visible_to(self, user):
         """
         Check that the current directory is visible to the current user
@@ -157,6 +161,10 @@ class Artifact(models.Model):
     def __str__(self):
         return self.path.name
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ("artifacts", [self.path.name])
+
     def is_visible_to(self, user):
         return self.directory.is_visible_to(user)
 
@@ -168,3 +176,7 @@ class Share(models.Model):
 
     def __str__(self):
         return "%s -> %s" % (self.token, self.artifact)
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ("shared", [self.token])
