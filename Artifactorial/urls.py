@@ -21,7 +21,10 @@ from __future__ import unicode_literals
 
 from django.conf.urls import patterns, url
 
+import Artifactorial.views as a_views
 
-urlpatterns = patterns('Artifactorial.views',
-                       url(r'^artifacts/(?P<filename>.*)$', 'artifacts', name='artifacts'),
-                       url(r'^shared/(?P<token>.*)$', 'shared', name='shared'))
+
+urlpatterns = [
+  url(r'^artifacts/(?P<filename>.*)$', a_views.artifacts, name='artifacts'),
+  url(r'^shared/(?P<token>.*)$', a_views.shared, name='shared')
+]
