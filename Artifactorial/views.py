@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 from django.db.models import Q
-from django.core.servers.basehttp import FileWrapper
 from django.forms import ModelForm
 from django.http import (
   Http404,
@@ -28,7 +27,7 @@ from django.http import (
   HttpResponseBadRequest,
   HttpResponseForbidden,
   HttpResponseNotAllowed,
-  StreamingHttpResponse
+  FileResponse
 )
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
@@ -130,13 +129,11 @@ def _get(request, filename):
         if not artifact.is_visible_to(user):
             return HttpResponseForbidden()
 
-        wrapper = FileWrapper(artifact.path.file)
-
         # Guess the mimetype
         mime = mimetypes.guess_type(artifact.path.name)
-        response = StreamingHttpResponse(wrapper,
-                                         content_type=mime[0] if mime[0]
-                                         else 'text/plain')
+        response = FileResponse(open(artifact.path.name, 'rb'),
+                                content_type=mime[0] if mime[0]
+                                else 'text/plain')
 
         response['Content-Length'] = artifact.path.size
         return response
@@ -208,13 +205,11 @@ def shared(request, token):
     share = get_object_or_404(Share, token=token)
     artifact = share.artifact
 
-    wrapper = FileWrapper(artifact.path.file)
-
     # Guess the mimetype
     mime = mimetypes.guess_type(artifact.path.name)
-    response = StreamingHttpResponse(wrapper,
-                                     content_type=mime[0] if mime[0]
-                                     else 'text/plain')
+    response = FileResponse(open(artifact.path.name, 'rb'),
+                            content_type=mime[0] if mime[0]
+                            else 'text/plain')
 
     response['Content-Length'] = artifact.path.size
     return response
