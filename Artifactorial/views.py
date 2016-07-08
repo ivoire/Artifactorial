@@ -164,7 +164,6 @@ def _post(request, filename):
     # Find the directory by name
     directory_path = '/' + filename
     directory = get_object_or_404(Directory, path=directory_path)
-    request.POST['directory'] = directory.id
 
     user = get_current_user(request,
                             request.POST.get('token', ''))
@@ -179,7 +178,9 @@ def _post(request, filename):
             return HttpResponseForbidden()
 
     # Validate the updated form
-    form = ArtifactForm(request.POST, request.FILES)
+    form = ArtifactForm({'directory': directory.id,
+                         'is_permanent': request.POST.get('is_permanent', False)},
+                        request.FILES)
     if form.is_valid():
         artifact = form.save()
         return HttpResponse(artifact.path.url, content_type='text/plain')
