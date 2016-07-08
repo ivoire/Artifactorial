@@ -28,4 +28,3 @@ from Artifactorial.models import Artifact
 def artifact_post_delete(sender, **kwargs):
     artifact = kwargs['instance']
     artifact.path.storage.delete(artifact.path.path)
-    print("removing %s" % artifact.path.path)
