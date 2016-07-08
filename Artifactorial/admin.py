@@ -27,10 +27,14 @@ from Artifactorial.models import AuthToken, Artifact, Directory, Share
 import datetime
 
 
+class AuthTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'description')
+
+
 class ArtifactAdmin(admin.ModelAdmin):
     def ttl(self, obj):
         return obj.created_at + datetime.timedelta(days=obj.directory.ttl)
-    list_display = ('path', 'directory', 'is_permanent', 'created_at', 'ttl')
+    list_display = ('id', 'path', 'directory', 'is_permanent', 'created_at', 'ttl')
 
 
 class DirectoryAdmin(admin.ModelAdmin):
@@ -42,7 +46,15 @@ class DirectoryAdmin(admin.ModelAdmin):
                     'current_size')
 
 
-admin.site.register(AuthToken)
+class ShareAdmin(admin.ModelAdmin):
+    def artifact_name(self, obj):
+        return obj.artifact.path.name
+
+    list_display = ('artifact_name', 'token')
+    ordering = ('artifact__path', 'token')
+
+
+admin.site.register(AuthToken, AuthTokenAdmin)
 admin.site.register(Artifact, ArtifactAdmin)
 admin.site.register(Directory, DirectoryAdmin)
-admin.site.register(Share)
+admin.site.register(Share, ShareAdmin)
