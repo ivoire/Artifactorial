@@ -47,6 +47,11 @@ class ArtifactForm(ModelForm):
 
 
 def get_current_user(request, token):
+    # If the token is None, save one dummy sql request
+    if token is None:
+        return request.user
+
+    # Try to match find the token
     try:
         token = AuthToken.objects.get(secret=token)
         return token.user
@@ -57,7 +62,7 @@ def get_current_user(request, token):
 def _get(request, filename):
     # Get the current user
     user = get_current_user(request,
-                            request.GET.get('token', ''))
+                            request.GET.get('token', None))
 
     # The URL regexp removes the leading slash, so add it back
     filename = '/' + filename
