@@ -22,12 +22,13 @@ from __future__ import unicode_literals
 from django.db.models import Q
 from django.forms import ModelForm
 from django.http import (
+  FileResponse,
   Http404,
   HttpResponse,
   HttpResponseBadRequest,
   HttpResponseForbidden,
   HttpResponseNotAllowed,
-  FileResponse
+  QueryDict
 )
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
@@ -205,6 +206,28 @@ def artifacts(request, filename):
         return HttpResponseNotAllowed(['GET', 'HEAD', 'POST'])
 
 
+@csrf_exempt
+def shared_root(request):
+    if request.method == 'PUT':
+        # Create a new sharing link
+        # Get the current user
+        user = get_current_user(request,
+                                request.GET.get('token', ''))
+        # Grab the requested file and check permissions
+        put = QueryDict(request.body)
+        filename = put.get('path', '')
+        artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
+        if not artifact.is_visible_to(user):
+            return HttpResponseForbidden()
+
+        # Create the link
+        share = Share(artifact=artifact)
+        share.save()
+        return HttpResponse(share.token, content_type='text/plain')
+    else:
+        return HttpResponseNotAllowed(['PUT'])
+
+
 def shared(request, token):
     share = get_object_or_404(Share, token=token)
     artifact = share.artifact
@@ -217,3 +240,4 @@ def shared(request, token):
 
     response['Content-Length'] = artifact.path.size
     return response
+
