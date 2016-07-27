@@ -78,9 +78,47 @@ Managing
 Installing
 ----------
 
-Artifactorial is a python application, based on *Django*. In order to install the dependencies, run:
+Artifactorial is a python application, based on *Django*.
+In order to setup an Artifactorial server from the sources, run:
 
-    pip install -r requirements.txt
+    # Create a directory
+    mkdir website
+    cd website
+    # Grab the sources
+    git clone https://github.com/ivoire/Artifactorial
+    # Install the python dependencies
+    virtualenv venv
+    source venv/bin/activate
+    pip install -r Artifactorial/requirements.txt
+    # Create the django project
+    django-admin startproject myproject
+    mv Artifactorial/* Artifactorial/.* myproject
+    rmdir Artifactorial
+
+Now you should configure the Django project by updating the settings in
+**myproject/settings.py**:
+ * add 'Artifactorial' to the **INSTALLED_APPS** list.
+ * set **MEDIA_ROOT** to the directory where the artifacts will be stored
+ * configure the database by updating the DATABASES field (see the [Django
+documentation](https://docs.djangoproject.com/en/1.9/ref/settings/#databases))
+
+In **myproject/urls.py** add the url for Artifactorial. You can look at
+**tests/test_urls.py**.
+
+
+When everything is setup, you should create the database and create the admin
+account:
+
+    python manage.py migrate
+    python manage.py createsuperuser
+
+For a developement server, run the Django mini-server:
+
+    python manage runserver
+
+For a production server, have a look at the official [Django
+documentation](https://docs.djangoproject.com/en/1.9/howto/deployment/wsgi/modwsgi/).
+You will have to also configure **DEBUG** and **ALLOW_HOST** variables.
 
 
 Using Artifactorial
