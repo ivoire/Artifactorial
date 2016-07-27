@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.forms import ModelForm
 from django.http import (
@@ -223,7 +224,8 @@ def shares_root(request):
         # Create the link
         share = Share(artifact=artifact)
         share.save()
-        return HttpResponse(share.token, content_type='text/plain')
+        return HttpResponse(request.build_absolute_uri(reverse('shares', args=[share.token])),
+                            content_type='text/plain')
     else:
         return HttpResponseNotAllowed(['PUT'])
 
