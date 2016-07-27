@@ -9,11 +9,12 @@ and upload files and the available pseudo directories.
 Features
 ========
 
-Artifactorial is managing three kind of entities:
+Artifactorial is managing four kinds of entities:
 
  * artifacts
  * directories
  * users and tokens
+ * links
 
 
 Artifact
@@ -64,6 +65,13 @@ uniquely identify a user. Each user can have multiple tokens.
 To get a *token*, ask an administrator to create one (or more) for you.
 
 
+Links
+-----
+
+Every User can create links that point to artifacts that they can read. This
+links can then be shared with other users to give them access to the files.
+
+
 Managing
 ========
 
@@ -86,7 +94,8 @@ To upload a file into a anonymous directory called */pub*, run:
 
     curl -F 'path=@path_to_the_file.ext' http://example.com/artifacts/pub/
 
-To upload a file into the directory */home/debian* owned by the user *debian*, run:
+To upload a file into the directory */home/debian* owned by the user *debian*,
+you should provide a token as a proof of your identity:
 
     curl -F 'path=@debian-sid.iso' -F 'token=123456789' http://example.com/artifacts/home/debian/
 
@@ -109,7 +118,16 @@ It's also possible to create a link to share a specific artifact with someone
 without any right on the directory that contains the artifact.
 The artifact can then be downloaded using
 
-    curl 'http://example.com/shared/123456789abcdef123456abcdef12345'
+    curl 'http://example.com/shares/123456789abcdef123456abcdef12345'
+
+Artifactorial also provide a way to retrieve the hash of a given file by making
+a HEAD request. The md5 hash of the file will be available in the *Content-MD5*
+header.
+
+    curl --head 'http://example.com/artifacts/home/debian/debian-sid.iso'
+
+The server will return the full link to the ressource.
+
 
 Administration
 --------------
@@ -127,6 +145,13 @@ permanent ones): use the *purge* command:
 
 Without the *--all* parameter, the *purge* command will only remove temporary
 artifacts.
+
+Every user can create a link that point to an artifacts that it can read.
+Making a PUT request will return the new hash:
+
+    curl -X PUT -d path=home/debian/debian-sid.iso 'http://example.com/shares/'
+
+The server will return the link
 
 
 Admin interface
