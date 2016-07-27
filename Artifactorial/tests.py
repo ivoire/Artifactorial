@@ -34,6 +34,13 @@ import os
 import sys
 
 
+def makedirs(path):
+    try:
+        os.makedirs(path)
+    except OSError as ex:
+        if ex.errno != 17:
+            raise OSError(ex)
+
 class BasicTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -238,8 +245,8 @@ class GETHEADTest(TestCase):
                                      directory=self.directories['/pub/debian'])
         a4 = Artifact.objects.create(path='pub/debian/2015/02/debian-sid2.iso',
                                      directory=self.directories['/pub/debian'])
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'debian', '2015', '01'), exist_ok=True)
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'debian', '2015', '02'), exist_ok=True)
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'debian', '2015', '01'))
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'debian', '2015', '02'))
         with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
             f_out.write(b'debian 6 iso')
         with open(os.path.join(settings.MEDIA_ROOT, a2.path.name), 'wb') as f_out:
@@ -309,10 +316,10 @@ class GETHEADTest(TestCase):
                                      directory=self.directories['/private/group'])
         a4 = Artifact.objects.create(path='anonymous/a/b.c',
                                      directory=self.directories['/anonymous'])
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user1'), exist_ok=True)
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user2'), exist_ok=True)
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'group', 'foo'), exist_ok=True)
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'anonymous', 'a'))
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user1'))
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user2'))
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'group', 'foo'))
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'anonymous', 'a'))
         with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
             f_out.write(b'I\'m awsome')
         with open(os.path.join(settings.MEDIA_ROOT, a2.path.name), 'wb') as f_out:
@@ -419,7 +426,7 @@ class GETHEADTest(TestCase):
         # Create public files
         a1 = Artifact.objects.create(path='pub/head/test.txt',
                                      directory=self.directories['/pub/debian'])
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'head'), exist_ok=True)
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'head'))
         with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
             f_out.write(b'some sort of test data')
 
@@ -434,7 +441,7 @@ class GETHEADTest(TestCase):
     def test_private_head(self):
         a1 = Artifact.objects.create(path='private/user1/head/test.txt',
                                      directory=self.directories['/private/user1'])
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user1', 'head'), exist_ok=True)
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user1', 'head'))
         with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
             f_out.write(b'some sort of test data')
         response = self.client.head(reverse('artifacts', args=['private/user1/head/test.txt']))
@@ -455,8 +462,8 @@ class ModelTest(TestCase):
         self.dir2 = Directory.objects.create(path='/pub/groups', group=self.group, is_public=True)
         self.dir3 = Directory.objects.create(path='/private', is_public=True)
 
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'pub/groups'), exist_ok=True)
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'private'), exist_ok=True)
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'pub/groups'))
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'private'))
 
     def test_directories_string(self):
         self.assertEqual(str(self.dir1), "%s (%s)" % ('/pub', self.user1.get_full_name()))
