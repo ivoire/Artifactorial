@@ -207,7 +207,7 @@ def artifacts(request, filename):
 
 
 @csrf_exempt
-def shared_root(request):
+def shares_root(request):
     if request.method == 'PUT':
         # Create a new sharing link
         # Get the current user
@@ -228,7 +228,7 @@ def shared_root(request):
         return HttpResponseNotAllowed(['PUT'])
 
 
-def shared(request, token):
+def shares(request, token):
     share = get_object_or_404(Share, token=token)
     artifact = share.artifact
 

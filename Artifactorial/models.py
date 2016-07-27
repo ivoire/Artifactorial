@@ -179,4 +179,4 @@ class Share(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ("shared", [self.token])
+        return ("shares", [self.token])

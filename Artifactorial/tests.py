@@ -503,11 +503,11 @@ class POSTTest(TestCase):
         s1 = Share.objects.create(artifact=a1)
         s2 = Share.objects.create(artifact=a1)
 
-        c1 = self.client.get(reverse('shared', args=[s1.token]))
+        c1 = self.client.get(reverse('shares', args=[s1.token]))
         self.assertEqual(c1.status_code, 200)
         self.assertEqual(b'something to share', next(c1.streaming_content))
 
-        c2 = self.client.get(reverse('shared', args=[s1.token]))
+        c2 = self.client.get(reverse('shares', args=[s1.token]))
         self.assertEqual(b'something to share', next(c2.streaming_content))
 
 
