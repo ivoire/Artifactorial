@@ -7,8 +7,8 @@ python:
     - "pypy"
 
 install:
-    - pip install -q -r requirements.txt --use-mirrors
-    - pip install -q coveralls --use-mirrors
+    - pip install -r requirements.txt
+    - pip install coveralls
 
 script:
     - coverage run --branch --source=Artifactorial tests/manage.py test Artifactorial
