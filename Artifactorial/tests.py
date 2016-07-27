@@ -494,3 +494,12 @@ class ModelTest(TestCase):
         with open(os.path.join(settings.MEDIA_ROOT, a2.path.name), 'wb') as f_out:
             f_out.write(b'0123456789')
         self.assertEqual(self.dir1.size(), 48)
+
+    def test_signal(self):
+        a1 = Artifact.objects.create(path='pub/delete.txt',
+                                     directory=self.dir1)
+        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
+            f_out.write(b'to be deleted')
+        self.assertTrue(os.path.exists(a1.path.path))
+        a1.delete()
+        self.assertFalse(os.path.exists(a1.path.path))
