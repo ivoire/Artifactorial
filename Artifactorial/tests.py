@@ -32,6 +32,7 @@ from Artifactorial.models import Artifact, Directory, AuthToken
 import base64
 import os
 import sys
+import tempfile
 
 
 def makedirs(path):
@@ -449,6 +450,41 @@ class GETHEADTest(TestCase):
         self.assertEqual(response.get('Content-MD5', None), None)
 
 
+class POSTTest(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user('azertyuiop',
+                                              'django.test@project.org',
+                                              '12789azertyuiop')
+        self.group = Group.objects.create(name='user 1')
+        self.group.user_set.add(self.user1)
+        self.group.save()
+        self.dir1 = Directory.objects.create(path='/post', is_public=True)
+        self.dir3 = Directory.objects.create(path='/post_private', user=self.user1, is_public=False)
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'post'))
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'post_private'))
+
+    def test_post_simple(self):
+        (fd, filename) = tempfile.mkstemp()
+        os.write(fd, b"test file")
+        os.close(fd)
+        with open(filename) as f_in:
+            response = self.client.post(reverse('artifacts', args=['post']), data={'path': f_in})
+            self.assertEqual(response.status_code, 200)
+
+        # Test that the file was uploaded
+        a = Artifact.objects.all()[0]
+        if sys.version > '3':
+            content = bytes.decode(response.content, 'utf-8')
+        else:
+            content = response.content
+        self.assertEqual(str(a.path), content)
+
+        # Test the file content
+        with open(a.path.path) as f_in:
+            self.assertEqual(f_in.read(), 'test file')
+        os.remove(filename)
+
+
 class ModelTest(TestCase):
     def setUp(self):
         self.user1 = User.objects.create_user('azertyuiop',
@@ -460,7 +496,7 @@ class ModelTest(TestCase):
 
         self.dir1 = Directory.objects.create(path='/pub', user=self.user1, is_public=True)
         self.dir2 = Directory.objects.create(path='/pub/groups', group=self.group, is_public=True)
-        self.dir3 = Directory.objects.create(path='/private', is_public=True)
+        self.dir3 = Directory.objects.create(path='/private', is_public=False)
 
         makedirs(os.path.join(settings.MEDIA_ROOT, 'pub/groups'))
         makedirs(os.path.join(settings.MEDIA_ROOT, 'private'))
