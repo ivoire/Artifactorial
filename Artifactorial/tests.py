@@ -27,7 +27,7 @@ from django.http import QueryDict
 from django.test import TestCase
 from django.test.client import Client
 
-from Artifactorial.models import Artifact, Directory, AuthToken
+from Artifactorial.models import Artifact, Directory, AuthToken, Share
 
 import base64
 import os
@@ -41,6 +41,14 @@ def makedirs(path):
     except OSError as ex:
         if ex.errno != 17:
             raise OSError(ex)
+
+
+def content(data):
+    if sys.version > '3':
+        return bytes.decode(data, 'utf-8')
+    else:
+        return data
+
 
 class BasicTest(TestCase):
     def setUp(self):
@@ -452,6 +460,7 @@ class GETHEADTest(TestCase):
 
 class POSTTest(TestCase):
     def setUp(self):
+        self.client = Client()
         self.user1 = User.objects.create_user('azertyuiop',
                                               'django.test@project.org',
                                               '12789azertyuiop')
@@ -473,16 +482,33 @@ class POSTTest(TestCase):
 
         # Test that the file was uploaded
         a = Artifact.objects.all()[0]
-        if sys.version > '3':
-            content = bytes.decode(response.content, 'utf-8')
-        else:
-            content = response.content
-        self.assertEqual(str(a.path), content)
+        self.assertEqual(str(a.path), content(response.content))
 
         # Test the file content
         with open(a.path.path) as f_in:
             self.assertEqual(f_in.read(), 'test file')
         os.remove(filename)
+
+    # TODO: test quotas
+    def test_quota(self):
+        pass
+
+
+    def test_share(self):
+        a1 = Artifact.objects.create(path='post/foo.txt', directory=self.dir1)
+        makedirs(os.path.join(settings.MEDIA_ROOT, 'post'))
+        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
+            f_out.write(b'something to share')
+
+        s1 = Share.objects.create(artifact=a1)
+        s2 = Share.objects.create(artifact=a1)
+
+        c1 = self.client.get(reverse('shared', args=[s1.token]))
+        self.assertEqual(c1.status_code, 200)
+        self.assertEqual(b'something to share', next(c1.streaming_content))
+
+        c2 = self.client.get(reverse('shared', args=[s1.token]))
+        self.assertEqual(b'something to share', next(c2.streaming_content))
 
 
 class ModelTest(TestCase):
