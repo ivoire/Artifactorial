@@ -135,7 +135,7 @@ def _get(request, filename):
 
         # Guess the mimetype
         mime = mimetypes.guess_type(artifact.path.name)
-        response = FileResponse(open(artifact.path.name, 'rb'),
+        response = FileResponse(open(artifact.path.path, 'rb'),
                                 content_type=mime[0] if mime[0]
                                 else 'text/plain')
 
@@ -234,7 +234,7 @@ def shared(request, token):
 
     # Guess the mimetype
     mime = mimetypes.guess_type(artifact.path.name)
-    response = FileResponse(open(artifact.path.name, 'rb'),
+    response = FileResponse(open(artifact.path.path, 'rb'),
                             content_type=mime[0] if mime[0]
                             else 'text/plain')
 
