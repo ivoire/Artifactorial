@@ -48,6 +48,10 @@ class ArtifactForm(ModelForm):
         fields = ('path', 'directory', 'is_permanent')
 
 
+def home(request):
+    return render(request, "Artifactorial/home.html")
+
+
 def get_current_user(request, token):
     # If the token is None, save one dummy sql request
     if token is None:

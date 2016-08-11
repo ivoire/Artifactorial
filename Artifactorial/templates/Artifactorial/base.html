@@ -1,0 +1,27 @@
+<!DOCTYPE html>{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Artifactorial - {% block title %}{% endblock %}</title>
+
+  <link href="{% get_static_prefix %}Artifactorial/css/bootstrap-v3.3.6.min.css" rel="stylesheet">
+  <link href="{% get_static_prefix %}Artifactorial/css/justified-nav.css" rel="stylesheet">
+  <style>
+    {% block style %}{% endblock %}
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+<div class="container">
+  {% block body %}{% endblock %}
+
+  <footer class="footer">
+    <p class="pull-right text-muted"><a href="https://github.com/ivoire/Artifactorial/releases/tag/v0.3">Artifactorial v0.3-git</a></p>
+  </footer>
+</div>
+
+</body>
+</html>

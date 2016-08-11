@@ -25,6 +25,7 @@ import Artifactorial.views as a_views
 
 
 urlpatterns = [
+  url(r'^$', a_views.home, name='home'),
   url(r'^artifacts/(?P<filename>.*)$', a_views.artifacts, name='artifacts'),
   url(r'^shares/$', a_views.shares_root, name='shares.root'),
   url(r'^shares/(?P<token>.*)$', a_views.shares, name='shares'),

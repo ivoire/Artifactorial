@@ -1,0 +1,86 @@
+{% extends 'Artifactorial/base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block style %}
+    code {
+      padding-top: 3px;
+      padding-bottom: 3px;
+    }
+{% endblock %}
+
+{% block body %}
+<div class="jumbotron">
+  <h1>Welcome to Artifactorial</h1>
+  <p class="lead"><em>Artifactorial</em> allows you to easily upload files on the server. It will also help you to control the permissions for each pseudo-directory where the files are stored.</p>
+  <a class="btn btn-info btn-lg" href="{% url 'artifacts' '' %}">Browse</a>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h2 class="modal-header">Using Artifactorial</h2>
+    <h3>Uploading</h3>
+    <p>To upload a file into an anonymous directory called <strong>/pub</strong>, run:</p>
+    <code>curl -F 'path=@path_to_the_file.ext' http://example.com/artifacts/pub/</code>
+
+    <p>To upload a file into the directory <strong>/home/debian</strong> owned by the user <em>debian</em>, you should provide a token as a proof of your identity:</p>
+    <code>curl -F 'path=@debian-sid.iso' -F 'token=123456789' http://example.com/artifacts/home/debian/</code>
+
+    <h3>Downloading</h3>
+    <p>When you upload a file, Artifactorial will return the URL that can be used to download it back. If this artifact is in a private directory, you should provide the token as a GET parameter like:</p>
+    <code>curl 'http://example.com/artifacts/home/debian/private/debian-sid.qcow2?token=123456789'</code>
+
+    <h3>Hashing</h3>
+    <p>Artifactorial also provide a way to retrieve the hash of a given file by making a HEAD request. The md5 hash of the file will be available in the <strong>Content-MD5</strong> header.</p>
+    <code>curl --head 'http://example.com/artifacts/home/debian/debian-sid.iso'</code>
+
+  </div>
+
+  <div class="col-md-12">
+    <h2 class="modal-header">Glossary</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <h3>Directory</h3>
+        <p>A directory is a repository that contains artifacts. Every directory is owned by either:</p>
+        <dl class="dl-horizontal">
+          <dt>a user</dt>
+          <dd>only the user can upload artifacts</dd>
+          <dt>a group</dt>
+          <dd>all the user in the group can upload artifacts</dd>
+          <dt>no one (anonymous)</dt>
+          <dd>everyone can upload artifacts</dd>
+        </dl>
+        <p>A directory is either <strong>public</strong> or <strong>private</strong>. Making listing available to everyone or only the owners.</p>
+        <p>Each directory size is limited by a <strong>quota</strong>. Uploading artifacts in a directory is only possible if the quota allows the upload.</p>
+        <p>Every directory also have a <strong>Time To Live</strong>. This is the maximum number of days a temporary artifact will stay in the directory, before behind deleted by the cleaning process.</p>
+      </div>
+
+      <div class="col-md-6">
+        <h3>Artifact</h3>
+        <p>An artifact is a <em>file</em> that as been uploaded into Artifactorial. Every artifact belongs to one directory.</p>
+        <p>An artifact can be either <em>permanent</em> or <em>temporary</em>. By default an artifact is temporary and thus will be <strong>automatically removed</strong> after some days in the directory. This duration, called Time To Live (TTL), is specific to each directory.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <h3>User and Tokens</h3>
+        <p>A user can upload and view artifacts in:</p>
+        <ul>
+          <li>his directories</li>
+          <li>his groups directories</li>
+          <li>the public directories</li>
+        </ul>
+        <p>In order to identify a user, Artifactorial require the user to provider his <strong>token</strong>.</p>
+        <p>To get a <em>token</em>, ask an administrator to create one (or more) for you.</p>
+      </div>
+
+      <div class="col-md-6">
+        <h3>Links</h3>
+        <p>Every User can create links that point to artifacts that they can read. This links can then be shared with other users to give them access to the files.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock body %}

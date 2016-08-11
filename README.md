@@ -128,7 +128,7 @@ To view the artifacts, just browse to the url where Artifactorial was installed:
 
     firefox http://example.com/artifacts/
 
-To upload a file into a anonymous directory called */pub*, run:
+To upload a file into an anonymous directory called */pub*, run:
 
     curl -F 'path=@path_to_the_file.ext' http://example.com/artifacts/pub/
 
