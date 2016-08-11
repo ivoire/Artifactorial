@@ -55,6 +55,9 @@ class BasicTest(TestCase):
         self.client = Client()
 
     def test_get_empty(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+
         response = self.client.get(reverse('artifacts', args=['']))
         self.assertEqual(response.status_code, 200)
 
