@@ -110,7 +110,7 @@ def _get(request, filename):
                                  artifact.path.size))
 
         # Raise an error if the directory does not exist
-        if not dir_set and not art_list and not in_real_directory:
+        if not dir_set and not art_list and not in_real_directory and not dirname_length == 0:
             raise Http404
 
         # Return the right formating (only html, json or yaml)
