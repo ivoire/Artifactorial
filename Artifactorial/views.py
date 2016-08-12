@@ -124,8 +124,20 @@ def _get(request, filename):
                          'yaml': 'application/yaml'}
         if formating not in ['html', 'json', 'yaml']:
             return HttpResponseBadRequest()
+
+        # Build the breadcrumb
+        breadcrumb = []
+        url_accumulator = ''
+        if dirname_length:
+            for d in dirname[1:].split('/'):
+                url_accumulator += d + '/'
+                breadcrumb.append((d, url_accumulator))
+        else:
+            breadcrumb = []
+
         return render(request, "Artifactorial/list.%s" % formating,
                       {'directory': dirname,
+                       'breadcrumb': breadcrumb,
                        'directories': sorted(dir_set),
                        'files': sorted(art_list),
                        'token': request.GET.get('token', None)},
@@ -133,7 +145,7 @@ def _get(request, filename):
 
     else:
         # Serving the file
-        # TODO: use django-sendfile for more performances
+        # TODO: use django-sendfile for better performances
         artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
         if not artifact.is_visible_to(user):
             return HttpResponseForbidden()
@@ -194,6 +206,7 @@ def _post(request, filename):
                         request.FILES)
     if form.is_valid():
         artifact = form.save()
+        # TODO: does not work with alternate storage
         return HttpResponse(artifact.path.url, content_type='text/plain')
     else:
         return HttpResponseBadRequest()
