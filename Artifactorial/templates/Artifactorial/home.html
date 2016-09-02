@@ -14,7 +14,24 @@
 <div class="jumbotron">
   <h1>Welcome to Artifactorial</h1>
   <p class="lead"><em>Artifactorial</em> allows you to easily upload files on the server. It will also help you to control the permissions for each pseudo-directory where the files are stored.</p>
-  <a class="btn btn-info btn-lg" href="{% url 'artifacts' '' %}">Browse</a>
+  {% if user.is_authenticated %}
+  <div class="btn-group">
+    <button type="button" class="btn btn-info btn-lg">Jump to</button>
+    <button type="button" class="btn btn-info btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <span class="caret"></span>
+      <span class="sr-only">Toggle Dropdown</span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-folder-open"></span> Artifacts</a></li>
+      <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
+      <li role="separator" class="divider"></li>
+      <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
+    </ul>
+  </div>
+  {% else %}
+  <a href="{% url 'artifacts.root' %}" class="btn btn-info btn-lg">Browse</a>
+  <a href="{% url 'accounts.login' %}?next={% url 'home' %}" class="btn btn-success btn-lg">Login</a>
+  {% endif %}
 </div>
 
 <div class="row">
@@ -84,3 +101,8 @@
   </div>
 </div>
 {% endblock body %}
+
+{% block scripts %}
+<script src="{% get_static_prefix %}Artifactorial/js/jquery-3.1.0.min.js"></script>
+<script src="{% get_static_prefix %}Artifactorial/js/bootstrap-v3.3.7.min.js"></script>
+{% endblock %}
