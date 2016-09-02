@@ -30,6 +30,13 @@
 {% endblock %}
 
 {% block body %}
+{% if form.errors %}
+  <div class="alert alert-danger">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    <strong>Wrong username or password</strong>: Note that both fields may be case-sensitive.
+  </div>
+{% endif %}
+
 <form class="form-signin" method="post" action="{% url 'accounts.login' %}">
   {% csrf_token %}
   <h2 class="form-signin-heading">Please sign in</h2>
