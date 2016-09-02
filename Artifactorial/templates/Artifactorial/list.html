@@ -8,7 +8,6 @@
   <div class="col-md-12">
     <h1>Index of {{ directory }}
       {% if user.is_authenticated %}
-
       <div class="btn-group pull-right">
         <button type="button" class="btn btn-info">{{ user.get_full_name }}</button>
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -17,7 +16,7 @@
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
           <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-          <li><a href="#"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
+          <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
         </ul>

@@ -1,0 +1,78 @@
+{% extends 'Artifactorial/base.html' %}
+{% load static %}
+
+{% block title %}Tokens{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-md-12">
+    <h1>Tokens for «{{ user.get_full_name }}»
+      <div class="btn-group pull-right">
+        <button type="button" class="btn btn-info">{{ user.get_full_name }}</button>
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-folder-open"></span> Browse</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
+        </ul>
+      </div>
+    </h1>
+    <p>Here is the list of all the tokens you can use to create and/or access to private artifacts.</p>
+    <p>You can also <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createModal">create a new token <span class="glyphicon glyphicon-plus-sign"></span></button>.</p>
+    <div class="modal fade" id="createModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Creating a token</h4>
+          </div>
+          <form method="POST" action=".">
+            {% csrf_token %}
+            <div class="modal-body">
+              <p>New token</p>
+              <input type="text" class="form-control" id="description" name="description">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th style="width: 5%">#</th>
+          <th>Description</th>
+          <th style="width: 30%">Value</th>
+          <th style="width: 5%">Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for token in tokens %}
+        <tr>
+          <td>{{ token.id }}</td>
+          <td>{{ token.description }}</td>
+          <td>{{ token.secret }}</td>
+          <td><a href="{% url 'tokens.delete' token.id %}" class="btn btn-danger btn-xs" title="delete"><span class="glyphicon glyphicon-trash"></span></a></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td></td>
+          <td colspan="3">&lt;Add a token&gt;</td>
+        </tr>
+        {% endfor %}
+      <tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% get_static_prefix %}Artifactorial/js/jquery-3.1.0.min.js"></script>
+<script src="{% get_static_prefix %}Artifactorial/js/bootstrap-v3.3.7.min.js"></script>
+{% endblock %}

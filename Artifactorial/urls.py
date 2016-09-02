@@ -39,4 +39,8 @@ urlpatterns = [
     # Shares
     url(r'^shares/$', a_views.shares_root, name='shares.root'),
     url(r'^shares/(?P<token>.*)$', a_views.shares, name='shares'),
+
+    # Tokens
+    url(r'^tokens/$', a_views.tokens, name='tokens.index'),
+    url(r'^tokens/(?P<id>\d+)/delete/$', a_views.tokens_delete, name='tokens.delete'),
 ]

@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.forms import ModelForm
 from django.http import (
@@ -29,6 +30,7 @@ from django.http import (
   HttpResponseBadRequest,
   HttpResponseForbidden,
   HttpResponseNotAllowed,
+  HttpResponseRedirect,
   QueryDict
 )
 from django.shortcuts import get_object_or_404, render
@@ -260,3 +262,23 @@ def shares(request, token):
     response['Content-Length'] = artifact.path.size
     return response
 
+
+@login_required
+def tokens(request):
+    if request.POST:
+        description = request.POST.get('description', '')
+        token = AuthToken.objects.create(user=request.user, description=description)
+        token.save()
+
+    tokens = AuthToken.objects.filter(user=request.user)
+    return render(request, 'Artifactorial/tokens/index.html', {'tokens': tokens})
+
+
+@login_required
+def tokens_delete(request, id):
+    try:
+        token = AuthToken.objects.get(user=request.user, id=id)
+    except AuthToken.DoesNotExist:
+        return Http404()
+    token.delete()
+    return HttpResponseRedirect(reverse('tokens.index'))
