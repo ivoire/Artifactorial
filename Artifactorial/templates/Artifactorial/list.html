@@ -8,7 +8,20 @@
   <div class="col-md-12">
     <h1>Index of {{ directory }}
       {% if user.is_authenticated %}
-      <a href="{% url 'accounts.logout' %}" class="btn btn-success pull-right">Sign out</a>
+
+      <div class="btn-group pull-right">
+        <button type="button" class="btn btn-info">{{ user.get_full_name }}</button>
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+          <li><a href="#"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
+        </ul>
+      </div>
       {% else %}
       <a href="{% url 'accounts.login' %}" class="btn btn-success pull-right">Sign in</a>
       {% endif %}
@@ -57,3 +70,8 @@
   </div>
 </div>
 {% endblock body %}
+
+{% block scripts %}
+<script src="{% get_static_prefix %}Artifactorial/js/jquery-3.1.0.min.js"></script>
+<script src="{% get_static_prefix %}Artifactorial/js/bootstrap-v3.3.7.min.js"></script>
+{% endblock %}
