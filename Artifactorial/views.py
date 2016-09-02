@@ -213,7 +213,7 @@ def _post(request, filename):
 
 
 @csrf_exempt
-def artifacts(request, filename):
+def artifacts(request, filename=''):
     if request.method == 'GET':
         return _get(request, filename)
     elif request.method == 'HEAD':

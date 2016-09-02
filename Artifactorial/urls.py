@@ -19,14 +19,24 @@
 
 from __future__ import unicode_literals
 
+from django.contrib.auth import views as v_auth
 from django.conf.urls import url
 
 import Artifactorial.views as a_views
 
 
 urlpatterns = [
-  url(r'^$', a_views.home, name='home'),
-  url(r'^artifacts/(?P<filename>.*)$', a_views.artifacts, name='artifacts'),
-  url(r'^shares/$', a_views.shares_root, name='shares.root'),
-  url(r'^shares/(?P<token>.*)$', a_views.shares, name='shares'),
+    url(r'^$', a_views.home, name='home'),
+
+    # Authentication
+    url(r'^accounts/login/$', v_auth.login, {'template_name': 'Artifactorial/accounts/login.html'}, name='accounts.login'),
+    url(r'^accounts/logout/$', v_auth.logout, {'template_name': 'Artifactorial/accounts/logged_out.html'}, name='accounts.logout'),
+
+    # Artifacts interactions
+    url(r'^artifacts/$', a_views.artifacts, name='artifacts.root'),
+    url(r'^artifacts/(?P<filename>.*)$', a_views.artifacts, name='artifacts'),
+
+    # Shares
+    url(r'^shares/$', a_views.shares_root, name='shares.root'),
+    url(r'^shares/(?P<token>.*)$', a_views.shares, name='shares'),
 ]

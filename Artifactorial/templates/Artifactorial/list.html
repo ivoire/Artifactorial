@@ -1,12 +1,18 @@
 {% extends 'Artifactorial/base.html' %}
 {% load static %}
 
-{% block title %}{{ directory }}{% endblock %}
+{% block title %}{{ directory }}{% if user.is_authenticated %} ({{ user }}){% endif %}{% endblock %}
 
 {% block body %}
 <div class="row">
   <div class="col-md-12">
-    <h1>Index of {{ directory }}</h1>
+    <h1>Index of {{ directory }}
+      {% if user.is_authenticated %}
+      <a href="{% url 'accounts.logout' %}" class="btn btn-success pull-right">Sign out</a>
+      {% else %}
+      <a href="{% url 'accounts.login' %}" class="btn btn-success pull-right">Sign in</a>
+      {% endif %}
+    </h1>
     <ol class="breadcrumb">
       <li><a href="{% url 'artifacts' '' %}">Root</a></li>
       {% for dir in breadcrumb %}
