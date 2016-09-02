@@ -101,6 +101,7 @@ Now you should configure the Django project by updating the settings in
  * set **MEDIA_ROOT** to the directory where the artifacts will be stored
  * configure the database by updating the DATABASES field (see the [Django
 documentation](https://docs.djangoproject.com/en/1.9/ref/settings/#databases))
+ * import **Artifactorial.settings** in your project settings
 
 In **myproject/urls.py** add the url for Artifactorial. You can look at
 **tests/test_urls.py**.
