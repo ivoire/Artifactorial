@@ -73,9 +73,9 @@ class Directory(models.Model):
 
     def __str__(self):
         if self.user is not None:
-            return "%s (%s)" % (self.path, self.user.get_full_name())
+            return "%s (user: %s)" % (self.path, self.user)
         elif self.group is not None:
-            return "%s (%s)" % (self.path, self.group)
+            return "%s (group: %s)" % (self.path, self.group)
         else:
             return "%s (anonymous)" % (self.path)
 

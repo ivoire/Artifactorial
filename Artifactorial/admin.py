@@ -34,7 +34,15 @@ class AuthTokenAdmin(admin.ModelAdmin):
 class ArtifactAdmin(admin.ModelAdmin):
     def ttl(self, obj):
         return obj.created_at + datetime.timedelta(days=obj.directory.ttl)
-    list_display = ('id', 'path', 'directory', 'is_permanent', 'created_at', 'ttl')
+
+    def size(self, obj):
+        return filesizeformat(obj.path.size)
+
+    def full_path(self, obj):
+        return "/" + obj.path.name
+
+    list_display = ('full_path', 'size', 'directory', 'is_permanent', 'created_at', 'ttl')
+    list_filter = ('directory', )
 
 
 class DirectoryAdmin(admin.ModelAdmin):
@@ -48,7 +56,7 @@ class DirectoryAdmin(admin.ModelAdmin):
 
 class ShareAdmin(admin.ModelAdmin):
     def artifact_name(self, obj):
-        return obj.artifact.path.name
+        return "/" + obj.artifact.path.name
 
     list_display = ('artifact_name', 'token')
     ordering = ('artifact__path', 'token')
