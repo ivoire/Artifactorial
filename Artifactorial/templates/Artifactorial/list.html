@@ -16,6 +16,8 @@
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
           <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'directories.index' %}"><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
           <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>

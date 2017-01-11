@@ -36,6 +36,9 @@ urlpatterns = [
     url(r'^artifacts/$', a_views.artifacts, name='artifacts.root'),
     url(r'^artifacts/(?P<filename>.*)$', a_views.artifacts, name='artifacts'),
 
+    # Directories
+    url(r'^directories/$', a_views.directories, name='directories.index'),
+
     # Shares
     url(r'^shares/$', a_views.shares_root, name='shares.root'),
     url(r'^shares/(?P<token>.*)$', a_views.shares, name='shares'),

@@ -226,6 +226,14 @@ def artifacts(request, filename=''):
         return HttpResponseNotAllowed(['GET', 'HEAD', 'POST'])
 
 
+def directories(request):
+    user = get_current_user(request,
+                            request.GET.get('token', ''))
+    dirs = [d for d in Directory.objects.all() if d.is_writable_to(user)]
+    return render(request, 'Artifactorial/directories/index.html',
+                  {'directories': dirs})
+
+
 @csrf_exempt
 def shares_root(request):
     if request.method == 'PUT':

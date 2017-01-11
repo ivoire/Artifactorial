@@ -122,6 +122,9 @@ class Directory(models.Model):
             size += artifact.path.size
         return size
 
+    def quota_progress(self):
+        return int(round(float(self.size()) / self.quota * 100))
+
     def clean_old_files(self):
         # A negative TTL mean that we should not remove old files
         if self.ttl < 0:

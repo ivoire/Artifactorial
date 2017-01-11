@@ -1,0 +1,67 @@
+{% extends 'Artifactorial/base.html' %}
+{% load static %}
+
+{% block title %}My directories{% endblock %}
+
+{% block style %}
+    .progress {
+      margin-bottom: 0px;
+    }
+{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-md-12">
+    <h1>Directories for «{{ user.get_full_name }}»
+      <div class="btn-group pull-right">
+        <button type="button" class="btn btn-info">{{ user.get_full_name }}</button>
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Artifacts</a></li>
+          <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
+        </ul>
+      </div>
+    </h1>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>User</th>
+          <th>Group</th>
+          <th>Public</th>
+          <th>Quota</th>
+          <th>Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dir in directories %}
+        <tr>
+          <td><a href="{{ dir.get_absolute_url }}">{{ dir.path }}</a></td>
+          <td>{{ dir.user|default:'-' }}</td>
+          <td>{{ dir.group|default:'-' }}</td>
+          <td><span class="label label-{{ dir.is_public|yesno:"success,danger" }}">{{ dir.is_public|yesno }}</span></td>
+          <td>{{ dir.size|filesizeformat }} / {{ dir.quota|filesizeformat }}</td>
+          <td>
+            <div class="progress">
+              <div class="progress-bar progress-bar-{% if dir.quota_progress < 50 %}success{% elif dir.quota_progress < 90 %}warning{% else %}danger{% endif %} progress-bar-striped" role="progressbar" aria-valuenow="{{ dir.quota_progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ dir.quota_progress }}%;">
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% get_static_prefix %}Artifactorial/js/jquery-3.1.0.min.js"></script>
+<script src="{% get_static_prefix %}Artifactorial/js/bootstrap-v3.3.7.min.js"></script>
+{% endblock %}

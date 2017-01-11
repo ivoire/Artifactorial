@@ -1,7 +1,7 @@
 {% extends 'Artifactorial/base.html' %}
 {% load static %}
 
-{% block title %}Tokens{% endblock %}
+{% block title %}My tokens{% endblock %}
 
 {% block body %}
 <div class="row">
@@ -14,7 +14,9 @@
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
           <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-folder-open"></span> Browse</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Artifacts</a></li>
+          <li><a href="{% url 'directories.index' %}"><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
         </ul>
