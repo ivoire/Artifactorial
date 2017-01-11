@@ -531,8 +531,8 @@ class ModelTest(TestCase):
         makedirs(os.path.join(settings.MEDIA_ROOT, 'private'))
 
     def test_directories_string(self):
-        self.assertEqual(str(self.dir1), "%s (%s)" % ('/pub', self.user1.get_full_name()))
-        self.assertEqual(str(self.dir2), "%s (%s)" % ('/pub/groups', self.group))
+        self.assertEqual(str(self.dir1), "%s (user: %s)" % ('/pub', self.user1))
+        self.assertEqual(str(self.dir2), "%s (group: %s)" % ('/pub/groups', self.group))
         self.assertEqual(str(self.dir3), "%s (anonymous)" % ('/private'))
 
     def test_directory_clean(self):
