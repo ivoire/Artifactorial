@@ -19,8 +19,12 @@
 
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from Artifactorial.models import Directory
+
+import errno
+import os
 
 
 class Command(BaseCommand):
@@ -28,5 +32,17 @@ class Command(BaseCommand):
     help = 'Clean old files'
 
     def handle(self, *args, **kwargs):
+        self.stdout.write("Removing old files in:\n")
         for directory in Directory.objects.all():
+            self.stdout.write("* %s\n" % directory.path)
             directory.clean_old_files()
+
+        self.stdout.write("Removing empty directories:\n")
+        for root, _, _ in os.walk(settings.MEDIA_ROOT, topdown=False):
+            try:
+                os.rmdir(root)
+            except OSError as exc:
+                if exc.errno != errno.ENOTEMPTY:
+                    self.stderr.write("Unable to remove %s: %s\n" % (root, exc))
+            else:
+                self.stdout.write("* %s\n" % root)
