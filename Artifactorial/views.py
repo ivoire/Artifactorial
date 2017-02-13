@@ -229,7 +229,7 @@ def artifacts(request, filename=''):
 def directories(request):
     user = get_current_user(request,
                             request.GET.get('token', ''))
-    dirs = [d for d in Directory.objects.all() if d.is_writable_to(user)]
+    dirs = [d for d in Directory.objects.all().order_by("path") if d.is_writable_to(user)]
     return render(request, 'Artifactorial/directories/index.html',
                   {'directories': dirs})
 
