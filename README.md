@@ -154,8 +154,11 @@ Programs can browse Artifactorial by using JSON and YAML outputs with:
     curl 'http://example.com/artifacts/home/?format=yaml'
 
 It's also possible to create a link to share a specific artifact with someone
-without any right on the directory that contains the artifact.
-The artifact can then be downloaded using
+without any right on the directory that contains the artifact:
+
+    curl -X PUT http://example.com/shares/ -d token=123456789 -d path=home/debian/private/debian-sid.qcow2
+
+Use the url returned by the previous command to download the artifact:
 
     curl 'http://example.com/shares/123456789abcdef123456abcdef12345'
 
