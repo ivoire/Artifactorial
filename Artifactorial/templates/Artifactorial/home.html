@@ -52,7 +52,6 @@
     <h3>Hashing</h3>
     <p>Artifactorial also provide a way to retrieve the hash of a given file by making a HEAD request. The md5 hash of the file will be available in the <strong>Content-MD5</strong> header.</p>
     <code>curl --head '{{ base_url }}artifacts/home/debian/debian-sid.iso'</code>
-
   </div>
 
   <div class="col-md-12">
@@ -60,6 +59,7 @@
     <div class="row">
       <div class="col-md-6">
         <h3>Directory</h3>
+        <div class="alert alert-warning" role="alert">Only admins can create directories!</div>
         <p>A directory is a repository that contains artifacts. Every directory is owned by either:</p>
         <dl class="dl-horizontal">
           <dt>a user</dt>
@@ -79,9 +79,7 @@
         <p>An artifact is a <em>file</em> that as been uploaded into Artifactorial. Every artifact belongs to one directory.</p>
         <p>An artifact can be either <em>permanent</em> or <em>temporary</em>. By default an artifact is temporary and thus will be <strong>automatically removed</strong> after some days in the directory. This duration, called Time To Live (TTL), is specific to each directory.</p>
       </div>
-    </div>
 
-    <div class="row">
       <div class="col-md-6">
         <h3>User and Tokens</h3>
         <p>A user can upload and view artifacts in:</p>
