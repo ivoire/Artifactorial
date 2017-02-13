@@ -53,8 +53,8 @@ class Directory(models.Model):
     is_public = models.BooleanField(default=False)
     ttl = models.IntegerField(blank=False, default=90,
                               help_text="Files TTL in days")
-    quota = models.IntegerField(blank=False, default=1024*1024*1024,
-                                help_text='Size limit in Bytes')
+    quota = models.BigIntegerField(blank=False, default=1024*1024*1024,
+                                   help_text='Size limit in Bytes')
 
     class Meta:
         verbose_name_plural = 'Directories'
