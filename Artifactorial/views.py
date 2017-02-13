@@ -51,7 +51,8 @@ class ArtifactForm(ModelForm):
 
 
 def home(request):
-    return render(request, "Artifactorial/home.html")
+    base_url = request.build_absolute_uri()
+    return render(request, "Artifactorial/home.html", {"base_url": base_url})
 
 
 def get_current_user(request, token):

@@ -40,18 +40,18 @@
     <h2 class="modal-header">Using Artifactorial</h2>
     <h3>Uploading</h3>
     <p>To upload a file into an anonymous directory called <strong>/pub</strong>, run:</p>
-    <code>curl -F 'path=@path_to_the_file.ext' http://example.com/artifacts/pub/</code>
+    <code>curl -F 'path=@path_to_the_file.ext' {{ base_url }}artifacts/pub/</code>
 
     <p>To upload a file into the directory <strong>/home/debian</strong> owned by the user <em>debian</em>, you should provide a token as a proof of your identity:</p>
-    <code>curl -F 'path=@debian-sid.iso' -F 'token=123456789' http://example.com/artifacts/home/debian/</code>
+    <code>curl -F 'path=@debian-sid.iso' -F 'token=123456789' {{ base_url }}artifacts/home/debian/</code>
 
     <h3>Downloading</h3>
     <p>When you upload a file, Artifactorial will return the URL that can be used to download it back. If this artifact is in a private directory, you should provide the token as a GET parameter like:</p>
-    <code>curl 'http://example.com/artifacts/home/debian/private/debian-sid.qcow2?token=123456789'</code>
+    <code>curl '{{ base_url }}artifacts/home/debian/private/debian-sid.qcow2?token=123456789'</code>
 
     <h3>Hashing</h3>
     <p>Artifactorial also provide a way to retrieve the hash of a given file by making a HEAD request. The md5 hash of the file will be available in the <strong>Content-MD5</strong> header.</p>
-    <code>curl --head 'http://example.com/artifacts/home/debian/debian-sid.iso'</code>
+    <code>curl --head '{{ base_url }}artifacts/home/debian/debian-sid.iso'</code>
 
   </div>
 
