@@ -3,14 +3,16 @@ python:
     - "2.7"
     - "3.4"
     - "3.5"
+    - "3.6"
     - "pypy"
 
 install:
     - pip install -r requirements.txt
+    - pip install pytest pytest-cov pytest-django
     - pip install coveralls
 
 script:
-    - coverage run --branch --source=Artifactorial tests/manage.py test Artifactorial
+    - py.test --cov --cov-config .coveragerc Artifactorial
 
 after_success:
     coveralls
