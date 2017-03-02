@@ -47,7 +47,8 @@ class AuthToken(models.Model):
 
 @python_2_unicode_compatible
 class Directory(models.Model):
-    path = models.CharField(max_length=300, null=False, blank=False)
+    path = models.CharField(max_length=300, unique=True,
+                            null=False, blank=False)
     user = models.ForeignKey(User, null=True, blank=True)
     group = models.ForeignKey(Group, null=True, blank=True)
     is_public = models.BooleanField(default=False)
