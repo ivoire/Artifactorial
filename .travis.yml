@@ -12,6 +12,7 @@ install:
     - pip install --upgrade coveralls
 
 script:
+    - ln -s tests/manage.py manage.py
     - py.test --cov --cov-config .coveragerc Artifactorial
 
 after_success:
