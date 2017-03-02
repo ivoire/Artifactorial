@@ -180,13 +180,13 @@ Running the command is a matter of:
 
     python manage.py clean
 
-Once in a while it can be interesting to purge old artifacts (including
-permanent ones): use the *purge* command:
+Once in a while it can be interesting to purge old permanent artifacts:
 
-    python manage.py purge --ttl time_to_live_in_days --all
+    python manage.py clean --purge
 
-Without the *--all* parameter, the *purge* command will only remove temporary
-artifacts.
+It's also possible to override the TTL when cleaning:
+
+    python manage.py clean --ttl time_to_live_in_days
 
 Every user can create a link that point to an artifacts that it can read.
 Making a PUT request will return the new hash:

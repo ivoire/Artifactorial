@@ -31,11 +31,18 @@ class Command(BaseCommand):
     args = None
     help = 'Clean old files'
 
+    def add_arguments(self, parser):
+        parser.add_argument("--purge", dest="purge",
+                            action="store_true", default=False,
+                            help="Also remove permanent artifacts")
+        parser.add_argument("--ttl", default=None,
+                            help="Override directory TTL")
+
     def handle(self, *args, **kwargs):
         self.stdout.write("Removing old files in:\n")
         for directory in Directory.objects.all():
             self.stdout.write("* %s\n" % directory.path)
-            directory.clean_old_files()
+            directory.clean_old_files(kwargs["purge"], kwargs["ttl"])
 
         self.stdout.write("Removing empty directories:\n")
         for root, _, _ in os.walk(settings.MEDIA_ROOT, topdown=False):

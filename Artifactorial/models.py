@@ -128,22 +128,17 @@ class Directory(models.Model):
     def quota_progress(self):
         return int(round(float(self.size()) / self.quota * 100))
 
-    def clean_old_files(self):
+    def clean_old_files(self, permanent, override_ttl):
         # A negative TTL mean that we should not remove old files
         if self.ttl < 0:
             return
         now = datetime.utcnow().replace(tzinfo=utc)
-        older_than = now - timedelta(days=self.ttl)
-        self.artifact_set.filter(created_at__lt=older_than)\
-                         .exclude(is_permanent=True)\
-                         .delete()
-
-    def purge_old_files(self, ttl, permanent):
-        now = datetime.utcnow().replace(tzinfo=utc)
+        # Use the TTL passed as argument if not empty
+        ttl = override_ttl if override_ttl is not None else self.ttl
         older_than = now - timedelta(days=ttl)
         query = self.artifact_set.filter(created_at__lt=older_than)
-        # Don't remove permanent files by default
-        if not permanent:
+        # Also remove permanent artifacts
+        if permanent:
             query = query.exclude(is_permanent=True)
         query.delete()
 
