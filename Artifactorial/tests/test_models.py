@@ -73,6 +73,11 @@ class TestDirectory(object):
         with pytest.raises(IntegrityError):
             directory = Directory.objects.create(path="/home/user1", user=users["u"][0])
 
+    def test_quota_min_value(self, db):
+        directory = Directory.objects.create(path="/pub", is_public=True, quota=0)
+        with pytest.raises(ValidationError):
+            directory.full_clean()
+
     def test_clean(self, users):
         # group or user but not both
         directory = Directory.objects.create(path="/pub", user=users["u"][0], group=users["g"][0])

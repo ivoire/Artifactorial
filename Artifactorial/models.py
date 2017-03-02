@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import datetime, utc
@@ -55,6 +56,7 @@ class Directory(models.Model):
     ttl = models.IntegerField(blank=False, default=90,
                               help_text="Files TTL in days")
     quota = models.BigIntegerField(blank=False, default=1024*1024*1024,
+                                   validators=[MinValueValidator(1)],
                                    help_text='Size limit in Bytes')
 
     class Meta:
