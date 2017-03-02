@@ -25,6 +25,9 @@ from django.db.utils import IntegrityError
 
 from Artifactorial.models import Artifact, Directory, AuthToken, Share
 
+import binascii
+from datetime import timedelta
+import os
 import pytest
 import sys
 
@@ -222,13 +225,90 @@ class TestDirectory(object):
         assert directory.size() == 500
         assert directory.quota_progress() == 100
 
-    def test_clean_old_files(self):
-        # TODO: implement this
-        pass
+    def test_clean_old_files(self, users, settings, tmpdir):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+        dir1 = Directory.objects.create(path="/home/user1", user=users["u"][0])
+        dir2 = Directory.objects.create(path="/home/user2", user=users["u"][1])
+        user1_root = media.mkdir("home").mkdir("user1")
+        user2_root = media.join("home").mkdir("user2")
 
+        user1_arts = []
+        for (index, f_name) in enumerate(["file1.txt", "testing.py", "hello.jpg"]):
+            filename = str(user1_root.join(f_name))
+            with open(filename, "w") as f_out:
+                f_out.write(bytes2unicode(binascii.b2a_hex(os.urandom(16))))
+            art = Artifact.objects.create(directory=dir1, path=filename)
+            art.created_at -= timedelta(days=index)
+            art.save()
+            user1_arts.append(art)
+        user2_arts = []
+        for (index, f_name) in enumerate(["file2.txt", "bla.py", "world.pdf"]):
+            filename = str(user2_root.join(f_name))
+            with open(filename, "w") as f_out:
+                f_out.write(bytes2unicode(binascii.b2a_hex(os.urandom(16))))
+            art = Artifact.objects.create(directory=dir2, path=filename)
+            art.created_at -= timedelta(days=index)
+            art.save()
+            user2_arts.append(art)
+
+        # Test the directory quota while we are here
+        assert dir1.size() == 3 * 32
+        assert dir2.size() == 3 * 32
+
+        assert dir1.artifact_set.count() == 3
+        assert dir2.artifact_set.count() == 3
+
+        # Will not remove anything because the ttl is too long
+        dir1.clean_old_files(purge=False)
+        dir2.clean_old_files(purge=False)
+        assert dir1.artifact_set.count() == 3
+        assert dir2.artifact_set.count() == 3
+
+        dir1.ttl = 2
+        dir1.save()
+        dir1.clean_old_files(purge=False)
+        assert dir1.artifact_set.count() == 2
+        assert os.path.exists(user1_arts[0].path.path) == True
+        assert os.path.exists(user1_arts[1].path.path) == True
+        assert os.path.exists(user1_arts[2].path.path) == False
+        assert dir2.artifact_set.count() == 3
+        assert os.path.exists(user2_arts[0].path.path) == True
+        assert os.path.exists(user2_arts[1].path.path) == True
+        assert os.path.exists(user2_arts[2].path.path) == True
+        dir2.clean_old_files(purge=False, override_ttl=2)
+        assert dir2.artifact_set.count() == 2
+        assert os.path.exists(user2_arts[0].path.path) == True
+        assert os.path.exists(user2_arts[1].path.path) == True
+        assert os.path.exists(user2_arts[2].path.path) == False
+
+        # Set a 0 TTL => do not remove anything (unless permanent is True)
+        dir2.ttl = 0
+        dir2.save()
+        dir2.clean_old_files(purge=False)
+        assert dir2.artifact_set.count() == 2
+        assert os.path.exists(user2_arts[0].path.path) == True
+        assert os.path.exists(user2_arts[1].path.path) == True
+        assert os.path.exists(user2_arts[2].path.path) == False
+        dir2.clean_old_files(purge=True)
+        assert dir2.artifact_set.count() == 0
+        assert os.path.exists(user2_arts[0].path.path) == False
+        assert os.path.exists(user2_arts[1].path.path) == False
+        assert os.path.exists(user2_arts[2].path.path) == False
+
+        dir1.clean_old_files(purge=True, override_ttl=1)
+        assert dir1.artifact_set.count() == 1
+        assert os.path.exists(user1_arts[0].path.path) == True
+        assert os.path.exists(user1_arts[1].path.path) == False
+        assert os.path.exists(user1_arts[2].path.path) == False
+        dir1.clean_old_files(purge=True, override_ttl=0)
+        assert dir1.artifact_set.count() == 0
+        assert os.path.exists(user1_arts[0].path.path) == False
+        assert os.path.exists(user1_arts[1].path.path) == False
+        assert os.path.exists(user1_arts[2].path.path) == False
 
 class TestArtifact(object):
-    def test_str_and_url(self, users, settings, tmpdir):
+    def test_methods(self, users, settings, tmpdir):
         media = tmpdir.mkdir("media")
         settings.MEDIA_ROOT = str(media)
         directory = Directory.objects.create(path="/home/user1", user=users["u"][0])
@@ -237,11 +317,15 @@ class TestArtifact(object):
         with open(filename, "w") as f_out:
             f_out.write("Hello World!")
         artifact = Artifact.objects.create(directory=directory, path=filename, is_permanent=True)
+
         assert artifact.path.size == 12
         assert str(artifact) == filename
+
         assert artifact.is_visible_to(users["u"][0]) == True
         assert artifact.is_visible_to(users["u"][1]) == False
         assert artifact.is_visible_to(users["u"][2]) == False
+
+        assert artifact.get_absolute_url() == "/artifacts/%s" % filename
 
 
 class TestShare(object):
