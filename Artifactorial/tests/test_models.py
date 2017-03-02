@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
@@ -33,7 +33,9 @@ def users(db):
     group1 = Group.objects.create(name="grp1")
     group2 = Group.objects.create(name="grp2")
     user1 = User.objects.create_user("user1", "user1@example.com", "123456")
+    user1.groups.add(group1, group2)
     user2 = User.objects.create_user("user2", "user2@example.com", "123456")
+    user2.groups.add(group1)
     user3 = User.objects.create_user("user3", "user3@example.com", "123456")
 
     return {"u": [user1, user2, user3],
@@ -99,3 +101,98 @@ class TestDirectory(object):
         assert directory.get_absolute_url() == "/artifacts/home/user1/"
         directory = Directory.objects.create(path="/pub/bla/bla/bla", is_public=True)
         assert directory.get_absolute_url() == "/artifacts/pub/bla/bla/bla/"
+
+    def test_visible_writable_to(self, users):
+        anon = AnonymousUser()
+        directory = Directory.objects.create(path="/anonymous", is_public=False)
+        assert directory.is_visible_to(anon) == False
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == True
+        assert directory.is_visible_to(users["u"][2]) == True
+        assert directory.is_writable_to(anon) == True
+        assert directory.is_writable_to(users["u"][0]) == True
+        assert directory.is_writable_to(users["u"][1]) == True
+        assert directory.is_writable_to(users["u"][2]) == True
+
+        directory = Directory.objects.create(path="/pub", is_public=True)
+        assert directory.is_visible_to(anon) == True
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == True
+        assert directory.is_visible_to(users["u"][2]) == True
+        assert directory.is_writable_to(anon) == True
+        assert directory.is_writable_to(users["u"][0]) == True
+        assert directory.is_writable_to(users["u"][1]) == True
+        assert directory.is_writable_to(users["u"][2]) == True
+
+        directory = Directory.objects.create(path="/home/user1", user=users["u"][0], is_public=False)
+        assert directory.is_visible_to(anon) == False
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == False
+        assert directory.is_visible_to(users["u"][2]) == False
+        assert directory.is_writable_to(anon) == False
+        assert directory.is_writable_to(users["u"][0]) == True
+        assert directory.is_writable_to(users["u"][1]) == False
+        assert directory.is_writable_to(users["u"][2]) == False
+
+        directory = Directory.objects.create(path="/home/user2", user=users["u"][1], is_public=False)
+        assert directory.is_visible_to(anon) == False
+        assert directory.is_visible_to(users["u"][0]) == False
+        assert directory.is_visible_to(users["u"][1]) == True
+        assert directory.is_visible_to(users["u"][2]) == False
+        assert directory.is_writable_to(anon) == False
+        assert directory.is_writable_to(users["u"][0]) == False
+        assert directory.is_writable_to(users["u"][1]) == True
+        assert directory.is_writable_to(users["u"][2]) == False
+
+        directory.is_public = True
+        directory.save()
+        assert directory.is_visible_to(anon) == True
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == True
+        assert directory.is_visible_to(users["u"][2]) == True
+        assert directory.is_writable_to(anon) == False
+        assert directory.is_writable_to(users["u"][0]) == False
+        assert directory.is_writable_to(users["u"][1]) == True
+        assert directory.is_writable_to(users["u"][2]) == False
+
+        directory = Directory.objects.create(path="/home/grp1", group=users["g"][0], is_public=False)
+        assert directory.is_visible_to(anon) == False
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == True
+        assert directory.is_visible_to(users["u"][2]) == False
+        assert directory.is_writable_to(anon) == False
+        assert directory.is_writable_to(users["u"][0]) == True
+        assert directory.is_writable_to(users["u"][1]) == True
+        assert directory.is_writable_to(users["u"][2]) == False
+
+        directory.is_public = True
+        directory.save()
+        assert directory.is_visible_to(anon) == True
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == True
+        assert directory.is_visible_to(users["u"][2]) == True
+        assert directory.is_writable_to(anon) == False
+        assert directory.is_writable_to(users["u"][0]) == True
+        assert directory.is_writable_to(users["u"][1]) == True
+        assert directory.is_writable_to(users["u"][2]) == False
+
+        directory = Directory.objects.create(path="/home/grp2", group=users["g"][1], is_public=False)
+        assert directory.is_visible_to(anon) == False
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == False
+        assert directory.is_visible_to(users["u"][2]) == False
+        assert directory.is_writable_to(anon) == False
+        assert directory.is_writable_to(users["u"][0]) == True
+        assert directory.is_writable_to(users["u"][1]) == False
+        assert directory.is_writable_to(users["u"][2]) == False
+
+        directory.is_public = True
+        directory.save()
+        assert directory.is_visible_to(anon) == True
+        assert directory.is_visible_to(users["u"][0]) == True
+        assert directory.is_visible_to(users["u"][1]) == True
+        assert directory.is_visible_to(users["u"][2]) == True
+        assert directory.is_writable_to(anon) == False
+        assert directory.is_writable_to(users["u"][0]) == True
+        assert directory.is_writable_to(users["u"][1]) == False
+        assert directory.is_writable_to(users["u"][2]) == False
