@@ -7,9 +7,9 @@ python:
     - "pypy"
 
 install:
-    - pip install -r requirements.txt
-    - pip install pytest pytest-cov pytest-django
-    - pip install coveralls
+    - pip install --upgrade -r requirements.txt
+    - pip install --upgrade pytest pytest-cov pytest-django
+    - pip install --upgrade coveralls
 
 script:
     - py.test --cov --cov-config .coveragerc Artifactorial
