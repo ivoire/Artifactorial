@@ -1,4 +1,9 @@
 [run]
 branch = True
 source = Artifactorial
-omit = */migrations/*, */tests/*, Artifactorial/tests.py, */__init__.py
+omit = */migrations/*,
+       */tests/*,
+       */tests.py,
+       */__init__.py,
+       */settings.py,
+       Artifactorial/admin.py
