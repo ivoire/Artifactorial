@@ -26,7 +26,14 @@ from django.db.utils import IntegrityError
 from Artifactorial.models import Artifact, Directory, AuthToken, Share
 
 import pytest
+import sys
 
+
+def bytes2unicode(string):
+    if sys.version < "3":
+        return string
+    else:
+        return bytes.decode(string, "utf-8")
 
 @pytest.fixture
 def users(db):
@@ -201,3 +208,53 @@ class TestDirectory(object):
         assert directory.is_writable_to(users["u"][0]) == True
         assert directory.is_writable_to(users["u"][1]) == False
         assert directory.is_writable_to(users["u"][2]) == False
+
+    def test_quota_progress(self, users):
+        directory = Directory.objects.create(path="/home/grp2", group=users["g"][1], quota=500)
+        assert directory.size() == 0
+        assert directory.quota_progress() == 0
+
+        directory.size = lambda : 50
+        assert directory.size() == 50
+        assert directory.quota_progress() == 10
+
+        directory.size = lambda : 500
+        assert directory.size() == 500
+        assert directory.quota_progress() == 100
+
+    def test_clean_old_files(self):
+        # TODO: implement this
+        pass
+
+
+class TestArtifact(object):
+    def test_str_and_url(self, users, settings, tmpdir):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+        directory = Directory.objects.create(path="/home/user1", user=users["u"][0])
+        user_root = media.mkdir("home").mkdir("user1")
+        filename = str(user_root.join("my_file.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!")
+        artifact = Artifact.objects.create(directory=directory, path=filename, is_permanent=True)
+        assert artifact.path.size == 12
+        assert str(artifact) == filename
+        assert artifact.is_visible_to(users["u"][0]) == True
+        assert artifact.is_visible_to(users["u"][1]) == False
+        assert artifact.is_visible_to(users["u"][2]) == False
+
+
+class TestShare(object):
+    def test_str_and_url(self, users, settings, tmpdir):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+        directory = Directory.objects.create(path="/home/user1", user=users["u"][0])
+        user_root = media.mkdir("home").mkdir("user1")
+        filename = str(user_root.join("my_file.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!")
+        artifact = Artifact.objects.create(directory=directory, path=filename)
+        share = Share.objects.create(artifact=artifact)
+
+        assert str(share) == "%s -> %s" % (share.token, filename)
+        assert share.get_absolute_url() == "/shares/%s" % bytes2unicode(share.token)
