@@ -234,7 +234,7 @@ def directories(request):
                           .select_related("user", "group") \
                           .prefetch_related("artifact_set")
 
-    dirs = [d for d in dirs_query if d.is_writable_to(user)]
+    dirs = [(d, d.is_writable_to(user)) for d in dirs_query if d.is_visible_to(user)]
     return render(request, 'Artifactorial/directories/index.html',
                   {'directories': dirs})
 
