@@ -265,6 +265,7 @@ def shares_root(request):
         share.save()
         return HttpResponse(request.build_absolute_uri(reverse('shares', args=[share.token])),
                             content_type='text/plain')
+    # TODO: also handle DELETE
     else:
         return HttpResponseNotAllowed(['PUT'])
 

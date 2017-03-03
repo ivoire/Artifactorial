@@ -162,7 +162,14 @@ class TestDirectories(object):
 
 
 class TestShares(object):
-    def test_put(self, client, db, users):
+    def test_put(self, client, db, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+
+        filename = str(media.mkdir("home").mkdir("user1").join("bla.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("something")
+
         dir1 = Directory.objects.create(path="/home/user1", user=users["u"][0], is_public=True)
         art1 = Artifact.objects.create(path="home/user1/bla.txt", directory=dir1)
         token = AuthToken.objects.create(user=users["u"][0])
@@ -170,14 +177,24 @@ class TestShares(object):
         # Create a share for our own artifact
         response = client.put(reverse("shares.root"), data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret))
         assert response.status_code == 200
-        pattern = re.compile("http://testserver/shares/[a-f0-9]+$")
+        pattern = re.compile("http://testserver/shares/([a-f0-9]+)$")
         assert pattern.match(bytes2unicode(response.content))
 
         # Create a share for a readable artifact
         token = AuthToken.objects.create(user=users["u"][1])
         response = client.put(reverse("shares.root"), data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret))
         assert response.status_code == 200
-        assert pattern.match(bytes2unicode(response.content))
+        match = pattern.match(bytes2unicode(response.content))
+        assert match
+
+        response = client.get(reverse("shares", args=[match.groups()[0]]))
+        assert response.status_code == 200
+        resp = list(response.streaming_content)
+        assert len(resp) == 1
+        assert bytes2unicode(resp[0]) == "something"
+        assert response["Content-Type"] == "text/plain"
+        assert response["Content-Length"] == "9"
+
 
     def test_invalid_put(self, client, db, users):
         # Only PUT is allowed yet
