@@ -188,13 +188,6 @@ It's also possible to override the TTL when cleaning:
 
     python manage.py clean --ttl time_to_live_in_days
 
-Every user can create a link that point to an artifacts that it can read.
-Making a PUT request will return the new hash:
-
-    curl -X PUT -d path=home/debian/debian-sid.iso 'http://example.com/shares/'
-
-The server will return the link
-
 
 Admin interface
 ---------------

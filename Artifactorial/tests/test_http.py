@@ -29,6 +29,7 @@ import binascii
 from datetime import timedelta
 import os
 import pytest
+import re
 import sys
 
 
@@ -158,3 +159,40 @@ class TestDirectories(object):
         assert response.context["directories"][1][1] == False
         assert response.context["directories"][2][0].path == "/home/user3"
         assert response.context["directories"][2][1] == True
+
+
+class TestShares(object):
+    def test_put(self, client, db, users):
+        dir1 = Directory.objects.create(path="/home/user1", user=users["u"][0], is_public=True)
+        art1 = Artifact.objects.create(path="home/user1/bla.txt", directory=dir1)
+        token = AuthToken.objects.create(user=users["u"][0])
+
+        # Create a share for our own artifact
+        response = client.put(reverse("shares.root"), data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret))
+        assert response.status_code == 200
+        pattern = re.compile("http://testserver/shares/[a-f0-9]+$")
+        assert pattern.match(bytes2unicode(response.content))
+
+        # Create a share for a readable artifact
+        token = AuthToken.objects.create(user=users["u"][1])
+        response = client.put(reverse("shares.root"), data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret))
+        assert response.status_code == 200
+        assert pattern.match(bytes2unicode(response.content))
+
+    def test_invalid_put(self, client, db, users):
+        # Only PUT is allowed yet
+        assert client.get(reverse("shares.root")).status_code == 405
+
+        dir1 = Directory.objects.create(path="/home/user1", user=users["u"][0])
+        art1 = Artifact.objects.create(path="home/user1/bla.txt", directory=dir1)
+        token = AuthToken.objects.create(user=users["u"][1])
+
+        # dir1 is not public
+        response = client.put(reverse("shares.root"), data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret))
+        assert response.status_code == 403
+
+        # Make dir1 public and try with an anonymous user
+        dir1.is_public = True
+        dir1.save()
+        response = client.put(reverse("shares.root"), data="path=/home/user1/bla.txt")
+        assert response.status_code == 403

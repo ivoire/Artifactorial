@@ -241,15 +241,22 @@ def directories(request):
 
 @csrf_exempt
 def shares_root(request):
+    # Create a new sharing link
     if request.method == 'PUT':
-        # Create a new sharing link
-        # Get the current user
-        user = get_current_user(request,
-                                request.GET.get('token', ''))
         # Grab the requested file and check permissions
         put = QueryDict(request.body)
         filename = put.get('path', '')
         artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
+
+        # Get the current user
+        user = get_current_user(request,
+                                put.get('token', ''))
+
+        # Anonymous users are not allowed to create shares
+        if user.is_anonymous:
+            return HttpResponseForbidden()
+
+        # The user should have the right to read the artifact
         if not artifact.is_visible_to(user):
             return HttpResponseForbidden()
 
