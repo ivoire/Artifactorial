@@ -7,3 +7,6 @@ omit = */migrations/*,
        */__init__.py,
        */settings.py,
        Artifactorial/admin.py
+
+[report]
+exclude_lines = pragma: no cover

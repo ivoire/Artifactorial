@@ -49,7 +49,7 @@ class Command(BaseCommand):
             try:
                 os.rmdir(root)
             except OSError as exc:
-                if exc.errno != errno.ENOTEMPTY:
+                if exc.errno != errno.ENOTEMPTY:  # pragma: no cover
                     self.stderr.write("Unable to remove %s: %s\n" % (root, exc))
             else:
                 self.stdout.write("* %s\n" % root)
