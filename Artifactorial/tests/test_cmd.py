@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.management import call_command
-from django.utils.six import StringIO
 
 from Artifactorial.models import Artifact, Directory
 

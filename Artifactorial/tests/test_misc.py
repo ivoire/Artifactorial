@@ -50,48 +50,6 @@ def content(data):
         return data
 
 
-class BasicTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-
-    def test_get_empty(self):
-        response = self.client.get(reverse('home'))
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('artifacts', args=['']))
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('artifacts', args=['pub']))
-        self.assertEqual(response.status_code, 404)
-
-        response = self.client.get(reverse('artifacts', args=['test']))
-        self.assertEqual(response.status_code, 404)
-
-    def test_head_empty(self):
-        response = self.client.head(reverse('artifacts', args=['']))
-        self.assertEqual(response.status_code, 404)
-
-        response = self.client.head(reverse('artifacts', args=['pub']))
-        self.assertEqual(response.status_code, 404)
-
-    def test_post_empty(self):
-        response = self.client.post(reverse('artifacts', args=['']), data={})
-        self.assertEqual(response.status_code, 404)
-
-        response = self.client.post(reverse('artifacts', args=['pub']), data={})
-        self.assertEqual(response.status_code, 404)
-
-    def test_others(self):
-        response = self.client.put(reverse('artifacts', args=['']))
-        self.assertEqual(response.status_code, 405)
-        response = self.client.delete(reverse('artifacts', args=['']))
-        self.assertEqual(response.status_code, 405)
-        response = self.client.options(reverse('artifacts', args=['']))
-        self.assertEqual(response.status_code, 405)
-        response = self.client.patch(reverse('artifacts', args=['']))
-        self.assertEqual(response.status_code, 405)
-
-
 class GETHEADTest(TestCase):
     def setUp(self):
         self.client = Client()

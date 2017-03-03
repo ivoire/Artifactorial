@@ -307,6 +307,7 @@ class TestDirectory(object):
         assert os.path.exists(user1_arts[1].path.path) == False
         assert os.path.exists(user1_arts[2].path.path) == False
 
+
 class TestArtifact(object):
     def test_methods(self, users, settings, tmpdir):
         media = tmpdir.mkdir("media")
