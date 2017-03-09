@@ -299,3 +299,90 @@ class TestTokens(object):
         assert len(AuthToken.objects.filter(user=users["u"][0])) == 0
         assert AuthToken.objects.get(user=users["u"][1]) == t2
         assert AuthToken.objects.get(user=users["u"][2]) == t3
+
+
+class TestPostingArtifacts(object):
+    def test_push_non_existent_directory(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+        Directory.objects.create(path="/home/user1", user=users["u"][0])
+
+        # Not existing directory
+        response = client.post(reverse("artifacts", args=["home/user"]))
+        assert response.status_code == 404
+        # Not allowed to write to it
+        response = client.post(reverse("artifacts", args=["home/user1"]))
+        assert response.status_code == 403
+
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.post(reverse("artifacts", args=["home/user1"]))
+        assert response.status_code == 403
+
+    def test_quota(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        filename = str(tmpdir.join("data.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!!!")
+        settings.MEDIA_ROOT = str(media)
+        d = Directory.objects.create(path="/home/user1", user=users["u"][0])
+
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+        content = bytes2unicode(response.content)
+        assert content.startswith("home/user1/")
+        assert content.endswith("data.txt")
+
+        # Change the quota and try to add another file
+        d.quota = 27
+        d.save()
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={"path": f_in})
+        assert response.status_code == 403
+
+        # Fill completely the directory
+        d.quota = 28
+        d.save()
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+
+    def test_group_write(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        filename = str(tmpdir.join("data.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!!!")
+        settings.MEDIA_ROOT = str(media)
+        d = Directory.objects.create(path="/home/user1", group=users["g"][0])
+
+        # Same group
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+
+        # Same group
+        assert client.login(username=users["u"][1], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+
+        # Another group
+        assert client.login(username=users["u"][2], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={"path": f_in})
+        assert response.status_code == 403
+
+        # Anonymous user
+        client.logout()
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={"path": f_in})
+        assert response.status_code == 403
