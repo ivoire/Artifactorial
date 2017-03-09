@@ -43,6 +43,7 @@ class ArtifactAdmin(admin.ModelAdmin):
 
     list_display = ('full_path', 'size', 'directory', 'is_permanent', 'created_at', 'ttl')
     list_filter = ('directory', )
+    readonly_fields = ('directory', )
 
 
 class DirectoryAdmin(admin.ModelAdmin):
