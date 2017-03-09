@@ -392,32 +392,6 @@ class GETHEADTest(TestCase):
                                               q.urlencode()))
         self.assertEqual(response.status_code, 403)
 
-    def test_public_head(self):
-        # Create public files
-        a1 = Artifact.objects.create(path='pub/head/test.txt',
-                                     directory=self.directories['/pub/debian'])
-        makedirs(os.path.join(settings.MEDIA_ROOT, 'pub', 'head'))
-        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
-            f_out.write(b'some sort of test data')
-
-        response = self.client.head(reverse('artifacts', args=['pub/head/test.txt']))
-        self.assertEqual(response.status_code, 200)
-        # This is not working under python3.2 due to types checks in
-        # base64.b64decode
-        if not sys.version_info[0:2] == (3, 2):
-            self.assertEqual(base64.b64decode(response['Content-MD5']),
-                             b'600ae9d6304b5d939e3dc10191536c58')
-
-    def test_private_head(self):
-        a1 = Artifact.objects.create(path='private/user1/head/test.txt',
-                                     directory=self.directories['/private/user1'])
-        makedirs(os.path.join(settings.MEDIA_ROOT, 'private', 'user1', 'head'))
-        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
-            f_out.write(b'some sort of test data')
-        response = self.client.head(reverse('artifacts', args=['private/user1/head/test.txt']))
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.get('Content-MD5', None), None)
-
 
 class POSTTest(TestCase):
     def setUp(self):
@@ -449,27 +423,6 @@ class POSTTest(TestCase):
         with open(a.path.path) as f_in:
             self.assertEqual(f_in.read(), 'test file')
         os.remove(filename)
-
-    # TODO: test quotas
-    def test_quota(self):
-        pass
-
-
-    def test_share(self):
-        a1 = Artifact.objects.create(path='post/foo.txt', directory=self.dir1)
-        makedirs(os.path.join(settings.MEDIA_ROOT, 'post'))
-        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
-            f_out.write(b'something to share')
-
-        s1 = Share.objects.create(artifact=a1)
-        s2 = Share.objects.create(artifact=a1)
-
-        c1 = self.client.get(reverse('shares', args=[s1.token]))
-        self.assertEqual(c1.status_code, 200)
-        self.assertEqual(b'something to share', next(c1.streaming_content))
-
-        c2 = self.client.get(reverse('shares', args=[s1.token]))
-        self.assertEqual(b'something to share', next(c2.streaming_content))
 
 
 class ModelTest(TestCase):
@@ -506,30 +459,3 @@ class ModelTest(TestCase):
         self.assertRaises(ValidationError, d_in.clean)
         d_in = Directory.objects.create(path='invalid', user=self.user1)
         self.assertRaises(ValidationError, d_in.clean)
-
-    def test_directory_size(self):
-        self.assertEqual(self.dir1.size(), 0)
-        self.assertEqual(self.dir2.size(), 0)
-        self.assertEqual(self.dir3.size(), 0)
-
-        # Add some files
-        a1 = Artifact.objects.create(path='pub/test.txt',
-                                     directory=self.dir1)
-        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
-            f_out.write(b'qsgqhqhhqethsryjdfyjkdgukylgyilghlulul')
-        self.assertEqual(self.dir1.size(), 38)
-
-        a2 = Artifact.objects.create(path='pub/test2.txt',
-                                     directory=self.dir1)
-        with open(os.path.join(settings.MEDIA_ROOT, a2.path.name), 'wb') as f_out:
-            f_out.write(b'0123456789')
-        self.assertEqual(self.dir1.size(), 48)
-
-    def test_signal(self):
-        a1 = Artifact.objects.create(path='pub/delete.txt',
-                                     directory=self.dir1)
-        with open(os.path.join(settings.MEDIA_ROOT, a1.path.name), 'wb') as f_out:
-            f_out.write(b'to be deleted')
-        self.assertTrue(os.path.exists(a1.path.path))
-        a1.delete()
-        self.assertFalse(os.path.exists(a1.path.path))

@@ -25,6 +25,7 @@ from django.core.urlresolvers import reverse
 
 from Artifactorial.models import Artifact, AuthToken, Directory
 
+import base64
 import binascii
 from datetime import timedelta
 import os
@@ -449,3 +450,42 @@ class TestPostingArtifacts(object):
 
         assert d1.artifact_set.all().count() == 1
         assert d2.artifact_set.all().count() == 1
+
+
+class TestHead(object):
+    def test_public_artifact(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        filename = str(media.mkdir("pub").mkdir("debian").join("take_my_sum.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("some sort of test data")
+        settings.MEDIA_ROOT = str(media)
+        d = Directory.objects.create(path="/pub/debian", is_public=True)
+        art1 = Artifact.objects.create(path="pub/debian/take_my_sum.txt", directory=d)
+
+        response = client.head(reverse("artifacts", args=["pub/debian/take_my_sum.txt"]))
+        assert response.status_code == 200
+        assert bytes2unicode(base64.b64decode(response["Content-MD5"])) == "600ae9d6304b5d939e3dc10191536c58"
+
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.head(reverse("artifacts", args=["pub/debian/take_my_sum.txt"]))
+        assert response.status_code == 200
+        assert bytes2unicode(base64.b64decode(response["Content-MD5"])) == "600ae9d6304b5d939e3dc10191536c58"
+
+    def test_private_artifact(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        filename = str(media.mkdir("pub").mkdir("debian").join("take_my_sum.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("some sort of test data")
+        settings.MEDIA_ROOT = str(media)
+        d = Directory.objects.create(path="/pub/debian", group=users["g"][0])
+        art1 = Artifact.objects.create(path="pub/debian/take_my_sum.txt", directory=d)
+
+        response = client.head(reverse("artifacts", args=["pub/debian/take_my_sum.txt"]))
+        assert response.status_code == 403
+
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.head(reverse("artifacts", args=["pub/debian/take_my_sum.txt"]))
+        assert response.status_code == 200
+        assert bytes2unicode(base64.b64decode(response["Content-MD5"])) == "600ae9d6304b5d939e3dc10191536c58"
+        assert response["Content-Type"] == "text/plain"
+        assert response["Content-Length"] == "22"
