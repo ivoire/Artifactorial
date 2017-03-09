@@ -213,3 +213,51 @@ class TestShares(object):
         dir1.save()
         response = client.put(reverse("shares.root"), data="path=/home/user1/bla.txt")
         assert response.status_code == 403
+
+
+class TestTokens(object):
+    def test_anonymous_list(self, client):
+        # Redirection to the authentication page
+        response = client.get(reverse("tokens.index"))
+        assert response["location"] == "/accounts/login/?next=/tokens/"
+        assert response.status_code == 302
+
+    def test_listing(self, client, users):
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.get(reverse("tokens.index"))
+        assert response.status_code == 200
+        assert len(response.context["tokens"]) == 0
+
+        # Add some tokens using the ORM
+        t1 = AuthToken.objects.create(user=users["u"][0])
+        t2 = AuthToken.objects.create(user=users["u"][1])
+        t3 = AuthToken.objects.create(user=users["u"][2])
+        t4 = AuthToken.objects.create(user=users["u"][0], description="Hello")
+        response = client.get(reverse("tokens.index"))
+        assert response.status_code == 200
+        assert len(response.context["tokens"]) == 2
+        assert response.context["tokens"][0] == t1
+        assert response.context["tokens"][1] == t4
+
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.get(reverse("tokens.index"))
+        assert response.status_code == 200
+        assert len(response.context["tokens"]) == 1
+        assert response.context["tokens"][0] == t2
+
+    def test_posting(self, client, users):
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.get(reverse("tokens.index"))
+        assert response.status_code == 200
+        assert len(response.context["tokens"]) == 0
+
+        response = client.post(reverse("tokens.index"))
+        assert response.status_code == 200
+        assert len(response.context["tokens"]) == 1
+        assert response.context["tokens"][0] == AuthToken.objects.get(user=users["u"][0])
+
+        response = client.post(reverse("tokens.index"), data={"description": "Hello world"})
+        assert response.status_code == 200
+        assert len(response.context["tokens"]) == 2
+        assert response.context["tokens"][0] == AuthToken.objects.get(user=users["u"][0], description='')
+        assert response.context["tokens"][1] == AuthToken.objects.get(user=users["u"][0], description="Hello world")

@@ -286,7 +286,7 @@ def shares(request, token):
 
 @login_required
 def tokens(request):
-    if request.POST:
+    if request.method == 'POST':
         description = request.POST.get('description', '')
         token = AuthToken.objects.create(user=request.user, description=description)
         token.save()
