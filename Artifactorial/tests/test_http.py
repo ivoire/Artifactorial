@@ -386,3 +386,66 @@ class TestPostingArtifacts(object):
             response = client.post(reverse("artifacts", args=["home/user1"]),
                                    data={"path": f_in})
         assert response.status_code == 403
+
+    def test_anonymous_directories(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        filename = str(tmpdir.join("something.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!!!")
+        settings.MEDIA_ROOT = str(media)
+        d = Directory.objects.create(path="/pub")
+
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["pub/"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["pub/"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+
+    def test_invalid_request(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        filename = str(tmpdir.join("data.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!!!")
+        settings.MEDIA_ROOT = str(media)
+        d = Directory.objects.create(path="/home/user1", user=users["u"][0])
+
+        # Do not send a path
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["home/user1"]),
+                                   data={})
+        assert response.status_code == 400
+
+    def test_intricated_directories(self, client, settings, tmpdir, users):
+        # /pub and /pub/debian => write to /pub or /pub/Debian
+        media = tmpdir.mkdir("media")
+        filename = str(tmpdir.join("data.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!!!")
+        settings.MEDIA_ROOT = str(media)
+        d1 = Directory.objects.create(path="/pub")
+        d2 = Directory.objects.create(path="/pub/debian", user=users["u"][0])
+
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["pub"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+        content = bytes2unicode(response.content)
+        assert content.startswith("pub/")
+        assert not content.startswith("pub/debian")
+
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["pub/debian"]),
+                                   data={"path": f_in})
+        assert response.status_code == 200
+        content = bytes2unicode(response.content)
+        assert content.startswith("pub/debian")
+
+        assert d1.artifact_set.all().count() == 1
+        assert d2.artifact_set.all().count() == 1
