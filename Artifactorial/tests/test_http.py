@@ -219,8 +219,8 @@ class TestTokens(object):
     def test_anonymous_list(self, client):
         # Redirection to the authentication page
         response = client.get(reverse("tokens.index"))
-        assert response["location"] == "/accounts/login/?next=/tokens/"
         assert response.status_code == 302
+        assert response["location"] == "/accounts/login/?next=/tokens/"
 
     def test_listing(self, client, users):
         assert client.login(username=users["u"][0], password="123456")
@@ -261,3 +261,41 @@ class TestTokens(object):
         assert len(response.context["tokens"]) == 2
         assert response.context["tokens"][0] == AuthToken.objects.get(user=users["u"][0], description='')
         assert response.context["tokens"][1] == AuthToken.objects.get(user=users["u"][0], description="Hello world")
+
+    def test_failing_delete(self, client, users):
+        response = client.get(reverse("tokens.delete", args=["0"]))
+        assert response.status_code == 302
+        assert response["location"] == "/accounts/login/?next=/tokens/0/delete/"
+
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.get(reverse("tokens.delete", args=["0"]))
+        assert response.status_code == 404
+
+    def test_delete(self, client, users):
+        t1 = AuthToken.objects.create(user=users["u"][0])
+        t2 = AuthToken.objects.create(user=users["u"][1])
+        t3 = AuthToken.objects.create(user=users["u"][2])
+        t4 = AuthToken.objects.create(user=users["u"][0], description="Hello")
+
+        response = client.get(reverse("tokens.delete", args=["0"]))
+        assert response.status_code == 302
+        assert response["location"] == "/accounts/login/?next=/tokens/0/delete/"
+
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.get(reverse("tokens.delete", args=[t1.id]))
+        assert response.status_code == 302
+        assert response["location"] == reverse("tokens.index")
+        assert AuthToken.objects.get(user=users["u"][0]) == t4
+
+        # Forbidden to remove other users token
+        response = client.get(reverse("tokens.delete", args=[t2.id]))
+        assert response.status_code == 404
+
+        # Remove the last one we have
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.get(reverse("tokens.delete", args=[t4.id]))
+        assert response.status_code == 302
+        assert response["location"] == reverse("tokens.index")
+        assert len(AuthToken.objects.filter(user=users["u"][0])) == 0
+        assert AuthToken.objects.get(user=users["u"][1]) == t2
+        assert AuthToken.objects.get(user=users["u"][2]) == t3

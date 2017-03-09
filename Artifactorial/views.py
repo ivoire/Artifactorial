@@ -297,9 +297,5 @@ def tokens(request):
 
 @login_required
 def tokens_delete(request, id):
-    try:
-        token = AuthToken.objects.get(user=request.user, id=id)
-    except AuthToken.DoesNotExist:
-        return Http404()
-    token.delete()
+    get_object_or_404(AuthToken, user=request.user, id=id).delete()
     return HttpResponseRedirect(reverse('tokens.index'))
