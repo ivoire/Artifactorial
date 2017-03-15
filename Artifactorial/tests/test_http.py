@@ -639,6 +639,17 @@ class TestGet(object):
         response = client.get(reverse("artifacts", args=["home/user1/private.iso"]))
         assert response.status_code == 403
 
+    def test_anonymous_directory(self, client, directories, users):
+        anon_dir = directories[6]
+        anon_artifact = Artifact.objects.get(directory=anon_dir)
+        anon_url = anon_artifact.path.url
+
+        response = client.get(reverse("artifacts", args=[anon_url]))
+        assert response.status_code == 200
+        resp = list(response.streaming_content)
+        assert len(resp) == 1
+        assert bytes2unicode(resp[0]) == "One image"
+
     def test_public_file(self, client, directories, tmpdir, users):
         anon_dir = directories[6]
         anon_artifact = Artifact.objects.get(directory=anon_dir)
