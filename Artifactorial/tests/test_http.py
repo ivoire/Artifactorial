@@ -137,7 +137,18 @@ class TestDirectories(object):
         Directory.objects.create(path="/home/user3", user=users["u"][2], is_public=False)
         token = AuthToken.objects.create(user=users["u"][0])
 
+        # Test with token
         response = client.get("%s?token=%s" % (reverse("directories.index"), bytes2unicode(token.secret)))
+        assert response.status_code == 200
+        assert len(response.context["directories"]) == 2
+        assert response.context["directories"][0][0].path == "/home/user1"
+        assert response.context["directories"][0][1] == True
+        assert response.context["directories"][1][0].path == "/home/user2"
+        assert response.context["directories"][1][1] == False
+
+        # Test after login
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.get(reverse("directories.index"))
         assert response.status_code == 200
         assert len(response.context["directories"]) == 2
         assert response.context["directories"][0][0].path == "/home/user1"
@@ -151,7 +162,20 @@ class TestDirectories(object):
         Directory.objects.create(path="/home/user3", user=users["u"][2], is_public=False)
         token = AuthToken.objects.create(user=users["u"][2])
 
+        # Test with token
         response = client.get("%s?token=%s" % (reverse("directories.index"), bytes2unicode(token.secret)))
+        assert response.status_code == 200
+        assert len(response.context["directories"]) == 3
+        assert response.context["directories"][0][0].path == "/home/user1"
+        assert response.context["directories"][0][1] == False
+        assert response.context["directories"][1][0].path == "/home/user2"
+        assert response.context["directories"][1][1] == False
+        assert response.context["directories"][2][0].path == "/home/user3"
+        assert response.context["directories"][2][1] == True
+
+        # Test after login
+        assert client.login(username=users["u"][2], password="123456")
+        response = client.get(reverse("directories.index"))
         assert response.status_code == 200
         assert len(response.context["directories"]) == 3
         assert response.context["directories"][0][0].path == "/home/user1"
@@ -447,9 +471,26 @@ class TestPostingArtifacts(object):
         assert response.status_code == 200
         content = bytes2unicode(response.content)
         assert content.startswith("pub/debian")
+        assert not content.startswith("pub/debian/data.txt")
 
         assert d1.artifact_set.all().count() == 1
         assert d2.artifact_set.all().count() == 1
+
+    def test_permanent_artifacts(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        filename = str(tmpdir.join("data.txt"))
+        with open(filename, "w") as f_out:
+            f_out.write("Hello World!!!")
+        settings.MEDIA_ROOT = str(media)
+        d1 = Directory.objects.create(path="/pub")
+
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["pub"]),
+                                   data={"path": f_in,
+                                         "is_permanent": True})
+        assert response.status_code == 200
+        content = bytes2unicode(response.content)
+        assert content == "pub/data.txt"
 
 
 class TestHead(object):
