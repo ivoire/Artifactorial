@@ -86,8 +86,6 @@ class TestHTTPCode(object):
     def test_others_verbs_on_artifacts(self, client, db):
         response = client.put(reverse('artifacts', args=['']))
         assert response.status_code == 405
-        response = client.delete(reverse('artifacts', args=['']))
-        assert response.status_code == 405
         response = client.options(reverse('artifacts', args=['']))
         assert response.status_code == 405
         response = client.patch(reverse('artifacts', args=['']))
@@ -708,3 +706,101 @@ class TestHead(object):
         assert bytes2unicode(base64.b64decode(response["Content-MD5"])) == "600ae9d6304b5d939e3dc10191536c58"
         assert response["Content-Type"] == "text/plain"
         assert response["Content-Length"] == "22"
+
+
+class TestDelete(object):
+    def test_private_artifact(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+        d1 = Directory.objects.create(path="/private/user1", user=users["u"][0])
+
+        filename = str(media.join("arti.fact"))
+        with open(filename, "w") as f_out:
+            f_out.write("one more file")
+
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["private/user1"]),
+                                   data={"path": f_in,
+                                         "is_permanent": True})
+        assert Artifact.objects.filter(directory=d1).count() == 1
+        path = Artifact.objects.filter(directory=d1)[0].path.path
+        assert os.path.exists(path)
+        assert response.status_code == 200
+        content = bytes2unicode(response.content)
+
+        # Delete as anonymous
+        client.logout()
+        response = client.delete(reverse("artifacts", args=[content]))
+        assert response.status_code == 403
+
+        # Delete as user2
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.delete(reverse("artifacts", args=[content]))
+        assert response.status_code == 403
+
+        # Delete as user1
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.delete(reverse("artifacts", args=[content]))
+        assert response.status_code == 200
+        assert Artifact.objects.filter(directory=d1).count() == 0
+        assert not os.path.exists(path)
+
+    def test_private_group_artifact(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+        d1 = Directory.objects.create(path="/private/grp1", group=users["g"][0])
+
+        filename = str(media.join("arti.fact"))
+        with open(filename, "w") as f_out:
+            f_out.write("one more file")
+
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["private/grp1"]),
+                                   data={"path": f_in,
+                                         "is_permanent": True})
+        assert Artifact.objects.filter(directory=d1).count() == 1
+        path = Artifact.objects.filter(directory=d1)[0].path.path
+        assert os.path.exists(path)
+        assert response.status_code == 200
+        content = bytes2unicode(response.content)
+
+        # Delete as anonymous
+        client.logout()
+        response = client.delete(reverse("artifacts", args=[content]))
+        assert response.status_code == 403
+
+        # Delete as user2
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.delete(reverse("artifacts", args=[content]))
+        assert response.status_code == 200
+        assert Artifact.objects.filter(directory=d1).count() == 0
+        assert not os.path.exists(path)
+
+    def test_anonymous_artifact(self, client, settings, tmpdir, users):
+        media = tmpdir.mkdir("media")
+        settings.MEDIA_ROOT = str(media)
+        d1 = Directory.objects.create(path="/anon", is_public=True)
+
+        filename = str(media.join("arti.fact"))
+        with open(filename, "w") as f_out:
+            f_out.write("one more file")
+
+        assert client.login(username=users["u"][0], password="123456")
+        with open(filename, "r") as f_in:
+            response = client.post(reverse("artifacts", args=["anon"]),
+                                   data={"path": f_in,
+                                         "is_permanent": True})
+        assert Artifact.objects.filter(directory=d1).count() == 1
+        path = Artifact.objects.filter(directory=d1)[0].path.path
+        assert os.path.exists(path)
+        assert response.status_code == 200
+        content = bytes2unicode(response.content)
+
+        # Delete as anonymous
+        client.logout()
+        response = client.delete(reverse("artifacts", args=[content]))
+        assert response.status_code == 200
+        assert Artifact.objects.filter(directory=d1).count() == 0
+        assert not os.path.exists(path)

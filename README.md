@@ -148,6 +148,10 @@ To mark an artifact as *permanent*, just upload it with:
 
     curl -F 'path=@path_to_the_file.ext' -F 'is_permanent=1' http://example.com/artifacts/pub/
 
+To remove an artifact, send a DELETE verb on the Artifact url:
+
+    curl -X "DELETE" http://example.com/artifacts/home/debian/private/debian-sid.qcow2
+
 Programs can browse Artifactorial by using JSON and YAML outputs with:
 
     curl 'http://example.com/artifacts/home/?format=json'

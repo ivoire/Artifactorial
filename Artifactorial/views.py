@@ -68,6 +68,27 @@ def get_current_user(request, token):
         return request.user
 
 
+def _delete(request, filename):
+    # Get the current user
+    user = get_current_user(request,
+                            request.GET.get('token', None))
+
+    # The URL regexp removes the leading slash, so add it back
+    filename = '/' + filename
+
+    # Only valid for artifacts
+    if filename[-1] == '/':
+        return HttpResponseBadRequest()
+
+    artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
+
+    if not artifact.directory.is_writable_to(user):
+        return HttpResponseForbidden()
+
+    artifact.delete()
+    return HttpResponse('')
+
+
 def _get(request, filename):
     # Get the current user
     user = get_current_user(request,
@@ -223,8 +244,10 @@ def artifacts(request, filename=''):
         return _head(request, filename)
     elif request.method == 'POST':
         return _post(request, filename)
+    elif request.method == 'DELETE':
+        return _delete(request, filename)
     else:
-        return HttpResponseNotAllowed(['GET', 'HEAD', 'POST'])
+        return HttpResponseNotAllowed(['DELETE', 'GET', 'HEAD', 'POST'])
 
 
 def directories(request):
