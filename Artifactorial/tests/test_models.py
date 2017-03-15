@@ -88,6 +88,10 @@ class TestDirectory(object):
         with pytest.raises(ValidationError):
             directory.full_clean()
 
+    def test_quota_max_value(self, db):
+        directory = Directory.objects.create(path="/pub", is_public=True, quota=sys.maxsize)
+        directory.full_clean()
+
     def test_clean(self, users):
         # group or user but not both
         directory = Directory.objects.create(path="/pub", user=users["u"][0], group=users["g"][0])
