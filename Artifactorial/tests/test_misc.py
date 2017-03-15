@@ -50,7 +50,7 @@ def content(data):
         return data
 
 
-class GETHEADTest(TestCase):
+class GETTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user1 = User.objects.create_user('azertyuiop',
@@ -423,39 +423,3 @@ class POSTTest(TestCase):
         with open(a.path.path) as f_in:
             self.assertEqual(f_in.read(), 'test file')
         os.remove(filename)
-
-
-class ModelTest(TestCase):
-    def setUp(self):
-        self.user1 = User.objects.create_user('azertyuiop',
-                                              'django.test@project.org',
-                                              '12789azertyuiop')
-        self.group = Group.objects.create(name='user 1')
-        self.group.user_set.add(self.user1)
-        self.group.save()
-
-        self.dir1 = Directory.objects.create(path='/pub', user=self.user1, is_public=True)
-        self.dir2 = Directory.objects.create(path='/pub/groups', group=self.group, is_public=True)
-        self.dir3 = Directory.objects.create(path='/private', is_public=False)
-
-        makedirs(os.path.join(settings.MEDIA_ROOT, 'pub/groups'))
-        makedirs(os.path.join(settings.MEDIA_ROOT, 'private'))
-
-    def test_directories_string(self):
-        self.assertEqual(str(self.dir1), "%s (user: %s)" % ('/pub', self.user1))
-        self.assertEqual(str(self.dir2), "%s (group: %s)" % ('/pub/groups', self.group))
-        self.assertEqual(str(self.dir3), "%s (anonymous)" % ('/private'))
-
-    def test_directory_clean(self):
-        self.dir1.clean()
-        self.dir2.clean()
-        self.dir3.clean()
-
-        d_in = Directory.objects.create(path='/invalid', user=self.user1, group=self.group)
-        self.assertRaises(ValidationError, d_in.clean)
-        d_in = Directory.objects.create(path='/in/../valid/', user=self.user1)
-        self.assertRaises(ValidationError, d_in.clean)
-        d_in = Directory.objects.create(path='/invalid/', user=self.user1)
-        self.assertRaises(ValidationError, d_in.clean)
-        d_in = Directory.objects.create(path='invalid', user=self.user1)
-        self.assertRaises(ValidationError, d_in.clean)
