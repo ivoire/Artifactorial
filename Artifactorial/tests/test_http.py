@@ -66,7 +66,7 @@ class TestHTTPCode(object):
         response = client.get(reverse('artifacts', args=['pub/']))
         assert response.status_code == 404
 
-        response = client.get(reverse('artifacts', args=['test']))
+        response = client.get(reverse('artifacts', args=['test/']))
         assert response.status_code == 404
 
     def test_empty_head(self, client, db):
@@ -491,6 +491,173 @@ class TestPostingArtifacts(object):
         assert response.status_code == 200
         content = bytes2unicode(response.content)
         assert content == "pub/data.txt"
+
+
+@pytest.fixture
+def directories(client, settings, tmpdir, users):
+    media = tmpdir.mkdir("media")
+    settings.MEDIA_ROOT = str(media)
+    d1 = Directory.objects.create(path="/home/user1", user=users["u"][0], is_public=False)
+    d2 = Directory.objects.create(path="/home/user2", user=users["u"][1], is_public=False)
+    d3 = Directory.objects.create(path="/home/user3", user=users["u"][2], is_public=False)
+    d4 = Directory.objects.create(path="/home/grp1", group=users["g"][0], is_public=False)
+    d5 = Directory.objects.create(path="/home/grp2", group=users["g"][1], is_public=False)
+    d6 = Directory.objects.create(path="/pub", is_public=False)
+    d7 = Directory.objects.create(path="/anonymous", is_public=True)
+
+    img = tmpdir.join("anon.jpg")
+    with open(str(img), "w") as f_in:
+        f_in.write("One image")
+
+    # Create anonymous artifact
+    with open(str(img), "r") as f_in:
+        client.post(reverse("artifacts", args=["anonymous/"]),
+                    data={"path": f_in})
+
+    return [d1, d2, d3, d4, d5, d6, d7]
+
+
+class TestGet(object):
+    def test_public_directory(self, client, directories, users):
+        anon_dir = directories[6]
+        anon_artifact = Artifact.objects.get(directory=anon_dir)
+        anon_url = anon_artifact.path.url.split('/')
+
+        # As Anonymous
+        response = client.get(reverse("artifacts", args=[""]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/"
+        assert ctx["directories"] == ["anonymous"]
+        assert ctx["files"] == []
+        assert ctx["token"] == None
+
+        response = client.get(reverse("artifacts", args=["home/"]))
+        assert response.status_code == 404
+
+        response = client.get(reverse("artifacts", args=["pub/"]))
+        assert response.status_code == 404
+
+        response = client.get(reverse("artifacts", args=["anonymous/"]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/anonymous"
+        assert ctx["directories"] == [anon_url[1]]
+        assert ctx["files"] == []
+        assert ctx["token"] == None
+
+        response = client.get(reverse("artifacts", args=["anonymous/%s/" % anon_url[1]]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/anonymous/%s" % anon_url[1]
+        assert ctx["directories"] == [anon_url[2]]
+        assert ctx["files"] == []
+        assert ctx["token"] == None
+
+        response = client.get(reverse("artifacts", args=["%s/" % "/".join(anon_url[:-1])]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/%s" % "/".join(anon_url[:-1])
+        assert ctx["directories"] == []
+        assert ctx["files"] == [(anon_url[-1], 9)]
+        assert ctx["token"] == None
+
+        # As user1 using a token
+        token = AuthToken.objects.create(user=users["u"][0])
+        response = client.get("%s?token=%s" % (reverse("artifacts", args=[""]),
+                                               bytes2unicode(token.secret)))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/"
+        assert ctx["directories"] == ["anonymous", "home", "pub"]
+        assert ctx["files"] == []
+        assert ctx["token"] == bytes2unicode(token.secret)
+
+        response = client.get("%s?token=%s" % (reverse("artifacts", args=["home/"]),
+                                               bytes2unicode(token.secret)))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/home"
+        assert ctx["directories"] == ["grp1", "grp2", "user1"]
+        assert ctx["files"] == []
+        assert ctx["token"] == bytes2unicode(token.secret)
+
+        # As user2 using login
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.get(reverse("artifacts", args=[""]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/"
+        assert ctx["directories"] == ["anonymous", "home", "pub"]
+        assert ctx["files"] == []
+        assert ctx["token"] == None
+
+        response = client.get(reverse("artifacts", args=["home/"]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/home"
+        assert ctx["directories"] == ["grp1", "user2"]
+        assert ctx["files"] == []
+        assert ctx["token"] == None
+
+    def test_private_directory(self, client, directories, tmpdir, users):
+        # Create an artifact
+        img = tmpdir.join("private.iso")
+        with open(str(img), "w") as f_in:
+            f_in.write("iso image inside")
+
+        # As user1
+        assert client.login(username=users["u"][0], password="123456")
+        with open(str(img), "r") as f_in:
+            client.post(reverse("artifacts", args=["home/user1/"]),
+                        data={"path": f_in,
+                              "is_permanent": True})
+
+        private_dir = directories[0]
+        private_artifact = Artifact.objects.get(directory=private_dir)
+        private_url = private_artifact.path.url
+
+        response = client.get(reverse("artifacts", args=["home/user1/"]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == "/home/user1"
+        assert ctx["directories"] == []
+        assert ctx["files"] == [("private.iso", 16)]
+        assert ctx["token"] == None
+
+        # As anonymous
+        client.logout()
+        response = client.get(reverse("artifacts", args=["home/user1/"]))
+        assert response.status_code == 404
+        response = client.get(reverse("artifacts", args=["home/user1/private.iso"]))
+        assert response.status_code == 403
+
+        # As user2
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.get(reverse("artifacts", args=["home/user1/"]))
+        assert response.status_code == 404
+        response = client.get(reverse("artifacts", args=["home/user1/private.iso"]))
+        assert response.status_code == 403
+
+    def test_public_file(self, client, directories, tmpdir, users):
+        anon_dir = directories[6]
+        anon_artifact = Artifact.objects.get(directory=anon_dir)
+        anon_url = anon_artifact.path.url.split('/')
+
+        # As Anonymous
+        response = client.get(reverse("artifacts", args=[anon_artifact.path.url]))
+        assert response.status_code == 200
+        resp = list(response.streaming_content)
+        assert len(resp) == 1
+        assert bytes2unicode(resp[0]) == "One image"
+
+        # As user2
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.get(reverse("artifacts", args=[anon_artifact.path.url]))
+        assert response.status_code == 200
+        resp = list(response.streaming_content)
+        assert len(resp) == 1
+        assert bytes2unicode(resp[0]) == "One image"
 
 
 class TestHead(object):
