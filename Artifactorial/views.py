@@ -82,7 +82,7 @@ def _delete(request, filename):
 
     artifact = get_object_or_404(Artifact, path=filename.lstrip('/'))
 
-    if not artifact.directory.is_writable_to(user):
+    if not artifact.is_writable_to(user):
         return HttpResponseForbidden()
 
     artifact.delete()

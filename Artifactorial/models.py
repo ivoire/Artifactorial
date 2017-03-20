@@ -175,6 +175,9 @@ class Artifact(models.Model):
     def is_visible_to(self, user):
         return self.directory.is_visible_to(user)
 
+    def is_writable_to(self, user):
+        return self.directory.is_writable_to(user)
+
 
 @python_2_unicode_compatible
 class Share(models.Model):
