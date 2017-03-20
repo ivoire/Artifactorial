@@ -231,7 +231,9 @@ def _post(request, filename):
     if form.is_valid():
         artifact = form.save()
         # TODO: does not work with alternate storage
-        return HttpResponse(artifact.path.url, content_type='text/plain')
+        return HttpResponse(request.build_absolute_uri(reverse("artifacts",
+                                                               args=[artifact.path.url])),
+                            content_type='text/plain')
     else:
         return HttpResponseBadRequest()
 

@@ -386,7 +386,7 @@ class TestPostingArtifacts(object):
                                    data={"path": f_in})
         assert response.status_code == 200
         content = bytes2unicode(response.content)
-        assert content.startswith("home/user1/")
+        assert content.startswith("http://testserver/artifacts/home/user1/")
         assert content.endswith("data.txt")
 
         # Change the quota and try to add another file
@@ -490,8 +490,8 @@ class TestPostingArtifacts(object):
                                    data={"path": f_in})
         assert response.status_code == 200
         content = bytes2unicode(response.content)
-        assert content.startswith("pub/")
-        assert not content.startswith("pub/debian")
+        assert content.startswith("http://testserver/artifacts/pub/")
+        assert not content.startswith("http://testserver/artifacts/pub/debian")
 
         assert client.login(username=users["u"][0], password="123456")
         with open(filename, "r") as f_in:
@@ -499,8 +499,8 @@ class TestPostingArtifacts(object):
                                    data={"path": f_in})
         assert response.status_code == 200
         content = bytes2unicode(response.content)
-        assert content.startswith("pub/debian")
-        assert not content.startswith("pub/debian/data.txt")
+        assert content.startswith("http://testserver/artifacts/pub/debian")
+        assert not content.startswith("http://testserver/artifacts/pub/debian/data.txt")
 
         assert d1.artifact_set.all().count() == 1
         assert d2.artifact_set.all().count() == 1
@@ -519,7 +519,7 @@ class TestPostingArtifacts(object):
                                          "is_permanent": True})
         assert response.status_code == 200
         content = bytes2unicode(response.content)
-        assert content == "pub/data.txt"
+        assert content == "http://testserver/artifacts/pub/data.txt"
 
 
 @pytest.fixture
@@ -761,7 +761,7 @@ class TestDelete(object):
         path = Artifact.objects.filter(directory=d1)[0].path.path
         assert os.path.exists(path)
         assert response.status_code == 200
-        content = bytes2unicode(response.content)
+        content = bytes2unicode(response.content)[27:]
 
         # Delete as anonymous
         client.logout()
@@ -798,7 +798,7 @@ class TestDelete(object):
         path = Artifact.objects.filter(directory=d1)[0].path.path
         assert os.path.exists(path)
         assert response.status_code == 200
-        content = bytes2unicode(response.content)
+        content = bytes2unicode(response.content)[27:]
 
         # Delete as anonymous
         client.logout()
@@ -830,7 +830,7 @@ class TestDelete(object):
         path = Artifact.objects.filter(directory=d1)[0].path.path
         assert os.path.exists(path)
         assert response.status_code == 200
-        content = bytes2unicode(response.content)
+        content = bytes2unicode(response.content)[27:]
 
         # Delete as anonymous
         client.logout()
