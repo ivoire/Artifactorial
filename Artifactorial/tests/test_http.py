@@ -23,7 +23,7 @@ from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 
-from Artifactorial.models import Artifact, AuthToken, Directory
+from Artifactorial.models import Artifact, AuthToken, Directory, Share
 
 import base64
 import binascii
@@ -185,7 +185,10 @@ class TestDirectories(object):
 
 
 class TestShares(object):
-    def test_put(self, client, db, settings, tmpdir, users):
+    def test_invalid_verbs(self, client):
+        assert client.post(reverse("shares", args=["123"])).status_code == 405
+
+    def test_put_and_delete(self, client, db, settings, tmpdir, users):
         media = tmpdir.mkdir("media")
         settings.MEDIA_ROOT = str(media)
 
@@ -210,13 +213,41 @@ class TestShares(object):
         match = pattern.match(bytes2unicode(response.content))
         assert match
 
-        response = client.get(reverse("shares", args=[match.groups()[0]]))
+        share_token = match.groups()[0]
+        response = client.get(reverse("shares", args=[share_token]))
         assert response.status_code == 200
         resp = list(response.streaming_content)
         assert len(resp) == 1
         assert bytes2unicode(resp[0]) == "something"
         assert response["Content-Type"] == "text/plain"
         assert response["Content-Length"] == "9"
+
+        # Fail to delete the share
+        response = client.delete(reverse("shares", args=[share_token]))
+        assert response.status_code == 403
+
+        # Delete it with the wrong user
+        s1 = Share.objects.get(user=users["u"][1])
+        assert client.login(username=users["u"][0], password="123456")
+        response = client.delete(reverse("shares", args=[s1.token]))
+        assert response.status_code == 403
+
+        # With the right user
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.delete(reverse("shares", args=[s1.token]))
+        assert response.status_code == 200
+
+        # Same with a token
+        s1 = Share.objects.get(user=users["u"][0])
+        assert client.login(username=users["u"][1], password="123456")
+        response = client.delete(reverse("shares", args=[s1.token]))
+        assert response.status_code == 403
+
+        # With the right user
+        client.logout()
+        token = AuthToken.objects.create(user=users["u"][0])
+        response = client.delete("%s?token=%s" % (reverse("shares", args=[s1.token]), bytes2unicode(token.secret)))
+        assert response.status_code == 200
 
 
     def test_invalid_put(self, client, db, users):
@@ -709,6 +740,9 @@ class TestHead(object):
 
 
 class TestDelete(object):
+    def test_invalid_delete(self, client):
+        assert client.delete(reverse("artifacts", args=["/home/bla/"])).status_code == 400
+
     def test_private_artifact(self, client, settings, tmpdir, users):
         media = tmpdir.mkdir("media")
         settings.MEDIA_ROOT = str(media)

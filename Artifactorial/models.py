@@ -183,6 +183,7 @@ class Artifact(models.Model):
 class Share(models.Model):
     token = models.TextField(max_length=32, unique=True, default=random_hash)
     artifact = models.ForeignKey(Artifact, blank=False)
+    user = models.ForeignKey(User, blank=False)
 
     def __str__(self):
         return "%s -> %s" % (self.token, self.artifact)

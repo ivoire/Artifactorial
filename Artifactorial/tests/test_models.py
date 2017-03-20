@@ -343,7 +343,7 @@ class TestShare(object):
         with open(filename, "w") as f_out:
             f_out.write("Hello World!")
         artifact = Artifact.objects.create(directory=directory, path=filename)
-        share = Share.objects.create(artifact=artifact)
+        share = Share.objects.create(artifact=artifact, user=users["u"][0])
 
         assert str(share) == "%s -> %s" % (share.token, filename)
         assert share.get_absolute_url() == "/shares/%s" % bytes2unicode(share.token)

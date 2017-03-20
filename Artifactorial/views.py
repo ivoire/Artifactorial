@@ -284,27 +284,45 @@ def shares_root(request):
             return HttpResponseForbidden()
 
         # Create the link
-        share = Share(artifact=artifact)
+        share = Share(artifact=artifact, user=user)
         share.save()
         return HttpResponse(request.build_absolute_uri(reverse('shares', args=[share.token])),
                             content_type='text/plain')
-    # TODO: also handle DELETE
     else:
         return HttpResponseNotAllowed(['PUT'])
 
 
 def shares(request, token):
-    share = get_object_or_404(Share, token=token)
-    artifact = share.artifact
+    if request.method == 'GET':
+        share = get_object_or_404(Share, token=token)
+        artifact = share.artifact
 
-    # Guess the mimetype
-    mime = mimetypes.guess_type(artifact.path.name)
-    response = FileResponse(open(artifact.path.path, 'rb'),
-                            content_type=mime[0] if mime[0]
-                            else 'text/plain')
+        # Guess the mimetype
+        mime = mimetypes.guess_type(artifact.path.name)
+        response = FileResponse(open(artifact.path.path, 'rb'),
+                                content_type=mime[0] if mime[0]
+                                else 'text/plain')
 
-    response['Content-Length'] = artifact.path.size
-    return response
+        response['Content-Length'] = artifact.path.size
+        return response
+
+    elif request.method == 'DELETE':
+        # Get the current user
+        user = get_current_user(request,
+                                request.GET.get('token', ''))
+        if user.is_anonymous:
+            return HttpResponseForbidden()
+
+        share = get_object_or_404(Share, token=token)
+        # Only the owner can remove a share
+        if share.user != user:
+            return HttpResponseForbidden()
+
+        share.delete()
+        return HttpResponse('')
+
+    else:
+        return HttpResponseNotAllowed(['DELETE', 'PUT'])
 
 
 @login_required
