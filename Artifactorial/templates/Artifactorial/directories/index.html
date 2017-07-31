@@ -23,6 +23,7 @@
           <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
+          <li class="disabled"><a href=""><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
           <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
@@ -32,7 +33,7 @@
     {% else %}
     <h1>Public directories
       <div class="btn-group pull-right">
-        <button type="button" class="btn btn-info">Anonymous user</button>
+        <button type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">Anonymous user</button>
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="caret"></span>
         </button>
@@ -40,6 +41,7 @@
           <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
+          <li class="disabled"><a href=""><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'accounts.login' %}"><span class="glyphicon glyphicon-user"></span>Sign in</a></li>
         </ul>

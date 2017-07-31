@@ -7,26 +7,40 @@
 <div class="row">
   <div class="col-md-12">
     <h1>Index of {{ directory }}
-      {% if user.is_authenticated %}
+    {% if user.is_authenticated %}
       <div class="btn-group pull-right">
         <a type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">{{ user.get_full_name|default:user.username }}</a>
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="caret"></span>
-          <span class="sr-only">Toggle Dropdown</span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
           <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
           <li role="separator" class="divider"></li>
-          <li><a href="{% url 'directories.index' %}"><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
+          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
+          <li class="disabled"><a href=""><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
           <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
         </ul>
       </div>
-      {% else %}
-      <a href="{% url 'accounts.login' %}" class="btn btn-success pull-right">Sign in</a>
-      {% endif %}
+    {% else %}
+      <div class="btn-group pull-right">
+        <button type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">Anonymous user</button>
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+          <li role="separator" class="divider"></li>
+          <li class="disabled"><a href=""><span class="glyphicon glyphicon-file"></span> Browse</a></li>
+          <li><a href="{% url 'directories.index' %}"><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'accounts.login' %}"><span class="glyphicon glyphicon-user"></span>Sign in</a></li>
+        </ul>
+      </div>
     </h1>
+    {% endif %}
+
     <ol class="breadcrumb">
       <li><a href="{% url 'artifacts' '' %}">Root</a></li>
       {% for dir in breadcrumb %}
