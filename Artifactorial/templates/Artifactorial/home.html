@@ -8,30 +8,23 @@
       padding-top: 3px;
       padding-bottom: 3px;
     }
+    .jumbotron > .btn {
+      padding: 6px 12px;
+    }
 {% endblock %}
 
 {% block body %}
 <div class="jumbotron">
   <h1>Welcome to Artifactorial</h1>
   <p class="lead"><em>Artifactorial</em> allows you to easily upload files on the server. It will also help you to control the permissions for each pseudo-directory where the files are stored.</p>
+  <a href="{% url 'artifacts.root' %}" class="btn btn-info">Browse</a>
+  <a href="{% url 'directories.index' %}" class="btn btn-success">Directories</a>
   {% if user.is_authenticated %}
-  <div class="btn-group">
-    <button type="button" class="btn btn-info btn-lg">Jump to</button>
-    <button type="button" class="btn btn-info btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      <span class="caret"></span>
-      <span class="sr-only">Toggle Dropdown</span>
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-      <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
-      <li><a href="{% url 'directories.index' %}"><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
-      <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
-      <li role="separator" class="divider"></li>
-      <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
-    </ul>
-  </div>
+  <a href="{% url 'tokens.index' %}" class="btn btn-warning">Tokens</a>
+  <a href="{% url 'accounts.profile' %}" class="btn btn-primary">Profile</a>
+  <a href="{% url 'accounts.logout' %}" class="btn btn-default">Sign out</a>
   {% else %}
-  <a href="{% url 'artifacts.root' %}" class="btn btn-info btn-lg">Browse</a>
-  <a href="{% url 'accounts.login' %}?next={% url 'home' %}" class="btn btn-success btn-lg">Sign in</a>
+  <a href="{% url 'accounts.login' %}?next={% url 'home' %}" class="btn btn-default">Sign in</a>
   {% endif %}
 </div>
 
