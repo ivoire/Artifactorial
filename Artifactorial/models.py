@@ -43,7 +43,10 @@ class AuthToken(models.Model):
     description = models.TextField(null=False, blank=True)
 
     def __str__(self):
-        return "%s (%s)" % (self.user.get_full_name(), self.description)
+        user = self.user.get_full_name()
+        if not user:
+            user = self.user.username
+        return "%s (%s)" % (user, self.description)
 
 
 @python_2_unicode_compatible

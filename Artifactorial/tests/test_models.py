@@ -58,6 +58,9 @@ class TestAuthToken(object):
         assert token.description == ""
         assert len(token.secret) == 32
     
+        assert str(token) == "%s ()" % users["u"][0].username
+        users["u"][0].first_name = "Hello"
+        users["u"][0].save()
         assert str(token) == "%s ()" % users["u"][0].get_full_name()
 
 
