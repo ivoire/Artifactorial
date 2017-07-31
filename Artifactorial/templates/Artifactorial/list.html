@@ -9,7 +9,7 @@
     <h1>Index of {{ directory }}
       {% if user.is_authenticated %}
       <div class="btn-group pull-right">
-        <button type="button" class="btn btn-info">{{ user.get_full_name }}</button>
+        <button type="button" class="btn btn-info">{{ user.get_full_name|default:user.username }}</button>
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="caret"></span>
           <span class="sr-only">Toggle Dropdown</span>

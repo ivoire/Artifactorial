@@ -13,9 +13,9 @@
 <div class="row">
   <div class="col-md-12">
     {% if user.is_authenticated %}
-    <h1>Directories for «{{ user.get_full_name }}»
+    <h1>Directories for «{{ user.get_full_name|default:user.username }}»
       <div class="btn-group pull-right">
-        <button type="button" class="btn btn-info">{{ user.get_full_name }}</button>
+        <button type="button" class="btn btn-info">{{ user.get_full_name|default:user.username }}</button>
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="caret"></span>
         </button>
