@@ -43,7 +43,11 @@ class ArtifactAdmin(admin.ModelAdmin):
 
     list_display = ('full_path', 'size', 'directory', 'is_permanent', 'created_at', 'ttl')
     list_filter = ('directory', )
-    readonly_fields = ('directory', )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj: # editing an existing object
+            return ('directory', )
+        return ()
 
 
 class DirectoryAdmin(admin.ModelAdmin):
