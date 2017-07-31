@@ -15,7 +15,7 @@
     {% if user.is_authenticated %}
     <h1>Directories for «{{ user.get_full_name|default:user.username }}»
       <div class="btn-group pull-right">
-        <button type="button" class="btn btn-info">{{ user.get_full_name|default:user.username }}</button>
+        <a type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">{{ user.get_full_name|default:user.username }}</a>
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="caret"></span>
         </button>

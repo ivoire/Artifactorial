@@ -342,3 +342,8 @@ def tokens(request):
 def tokens_delete(request, id):
     get_object_or_404(AuthToken, user=request.user, id=id).delete()
     return HttpResponseRedirect(reverse('tokens.index'))
+
+
+@login_required
+def profile(request):
+    return render(request, 'Artifactorial/accounts/profile.html')

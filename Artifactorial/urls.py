@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from django.contrib.auth import views as v_auth
 from django.conf.urls import url
+from django.core.urlresolvers import reverse_lazy
 
 import Artifactorial.views as a_views
 
@@ -31,6 +32,8 @@ urlpatterns = [
     # Authentication
     url(r'^accounts/login/$', v_auth.login, {'template_name': 'Artifactorial/accounts/login.html'}, name='accounts.login'),
     url(r'^accounts/logout/$', v_auth.logout, {'template_name': 'Artifactorial/accounts/logged_out.html'}, name='accounts.logout'),
+    url(r'^accounts/password/change/$', v_auth.password_change, {'post_change_redirect': reverse_lazy('accounts.profile')}, name='accounts.password_change'),
+    url(r'^accounts/profile/$', a_views.profile, name='accounts.profile'),
 
     # Artifacts interactions
     url(r'^artifacts/$', a_views.artifacts, name='artifacts.root'),

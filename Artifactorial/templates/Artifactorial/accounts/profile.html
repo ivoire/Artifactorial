@@ -1,0 +1,87 @@
+{% extends 'Artifactorial/base.html' %}
+{% load static %}
+
+{% block title %}My profile{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-md-12">
+    <h1>My profile
+      <div class="btn-group pull-right">
+        <a type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">{{ user.get_full_name|default:user.username }}</a>
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
+          <li><a href="{% url 'directories.index' %}"><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
+          <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
+        </ul>
+      </div>
+    </h1>
+  </div>
+
+  <div class="col-md-6">
+    <h4 class="modal-header">Personal information</h4>
+    <dl class="dl-horizontal">
+      <dt>Full name</dt>
+      <dd>{{ user.get_full_name|default:"??" }}</dd>
+      <dt>Username</dt>
+      <dd>{{ user.username }}</dd>
+      <dt>Email</dt>
+      <dd>{{ user.email|default:"??" }}</dd>
+      <dt>Joined</dt>
+      <dd><span title="{{ user.date_joined }}">
+          {{user.date_joined|timesince }} ago</span></dd>
+      <dt>Password</dt>
+      <dd><a href="{% url 'accounts.password_change' %}"><span class="glyphicon glyphicon-lock"></span> Update</a></dd>
+    </dl>
+  </div>
+
+  <div class="col-md-6">
+    <h4 class="modal-header">Groups</h4>
+    {% if user.groups.all %}
+    <p>You are member of the following groups:</p>
+    <div class="panel-group" id="accordion">
+    {% for group in user.groups.all %}
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            {% if group.user_set.count > 1 %}
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse-{{ forloop.counter }}">{{ group.name }} <span class="badge pull-right">{{ group.user_set.count|add:"-1" }}</span></a>
+            {% else %}
+              {{ group.name }} <span class="badge pull-right">0</span>
+            {% endif %}
+          </h4>
+        </div>
+        {% if group.user_set.count > 1 %}
+        <div id="collapse-{{ forloop.counter }}" class="panel-collapse collapse">
+          <div class="panel-body">
+            <ul>
+            {% for group_user in group.user_set.all|dictsort:"first_name"|dictsort:"last_name" %}
+              {% if group_user != user %}<li>{{ group_user.get_full_name|default:group_user.username }}</li>{% endif %}
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+    </div>
+    {% else %}
+    <p><i>You are not member of any group.</i></p>
+    {% endif %}
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% get_static_prefix %}Artifactorial/js/jquery-3.1.0.min.js"></script>
+<script src="{% get_static_prefix %}Artifactorial/js/bootstrap-v3.3.7.min.js"></script>
+{% endblock %}
