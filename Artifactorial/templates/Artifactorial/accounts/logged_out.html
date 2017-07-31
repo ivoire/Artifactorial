@@ -27,19 +27,8 @@
   <h2 class="div-signout-heading">Signed out</h2>
   <p>Thanks for using Artifactorial.</p>
 
-  <div class="btn-group">
-    <button type="button" class="btn btn-info">Jump to</button>
-    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      <span class="caret"></span>
-      <span class="sr-only">Toggle Dropdown</span>
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-      <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-      <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-folder-open"></span> Browse</a></li>
-      <li role="separator" class="divider"></li>
-      <li><a href="{% url 'accounts.login' %}"><span class="glyphicon glyphicon-user"></span> Sign in</a></li>
-    </ul>
-  </div>
+  <a href="{% url 'home' %}" class="btn btn-info">Home</a>
+  <a href="{% url 'accounts.login' %}?next={% url 'home' %}" class="btn btn-success">Sign in</a>
 </div>
 {% endblock %}
 
