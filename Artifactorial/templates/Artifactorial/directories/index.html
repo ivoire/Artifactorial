@@ -57,6 +57,7 @@
           <th>Group</th>
           <th>Public</th>
           <th>Writable</th>
+          <th title="Time to live in days">TTL</th>
           <th>Quota</th>
           <th>Progress</th>
         </tr>
@@ -69,6 +70,7 @@
           <td>{{ dir.0.group|default:'-' }}</td>
           <td><span class="label label-{{ dir.0.is_public|yesno:"success,danger" }}">{{ dir.0.is_public|yesno }}</span></td>
           <td><span class="glyphicon glyphicon-{{ dir.1|yesno:"ok,remove" }}"></span></td>
+          <td>{{ dir.0.ttl }}</td>
           <td>{{ dir.0.size|filesizeformat }} / {{ dir.0.quota|filesizeformat }}</td>
           <td>
             <div class="progress">
