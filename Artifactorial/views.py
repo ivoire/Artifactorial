@@ -110,7 +110,8 @@ def _get(request, filename):
         in_real_directory = False
 
         # List real directories
-        directories = Directory.objects.filter(Q(path__startswith="%s" % (dirname)) | Q(path=dirname)).select_related("user", "group")
+        directories = Directory.objects.filter(Q(path__startswith="%s" % (dirname)) | Q(path=dirname))
+        directories = directories.select_related("user", "group")
         for directory in directories:
             if not directory.is_visible_to(user):
                 continue
@@ -125,7 +126,9 @@ def _get(request, filename):
                 in_real_directory = True
 
         # List artifacts and pseudo directories
-        artifacts = Artifact.objects.filter(path__startswith=filename.lstrip('/')).select_related("directory")
+        artifacts = Artifact.objects.filter(path__startswith=filename.lstrip('/'))
+        artifacts = artifacts.select_related("directory", "directory__user",
+                                             "directory__group")
         for artifact in artifacts:
             if not artifact.is_visible_to(user):
                 continue
