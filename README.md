@@ -115,7 +115,7 @@ account:
 
 For a developement server, run the Django mini-server:
 
-    python manage runserver
+    python manage.py runserver
 
 For a production server, have a look at the official [Django
 documentation](https://docs.djangoproject.com/en/1.9/howto/deployment/wsgi/modwsgi/).
