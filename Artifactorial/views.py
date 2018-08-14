@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.forms import ModelForm
@@ -281,7 +281,7 @@ def shares_root(request):
                                 put.get('token', ''))
 
         # Anonymous users are not allowed to create shares
-        if user.is_anonymous():
+        if user.is_anonymous:
             return HttpResponseForbidden()
 
         # The user should have the right to read the artifact
@@ -315,7 +315,7 @@ def shares(request, token):
         # Get the current user
         user = get_current_user(request,
                                 request.GET.get('token', ''))
-        if user.is_anonymous():
+        if user.is_anonymous:
             return HttpResponseForbidden()
 
         share = get_object_or_404(Share, token=token)

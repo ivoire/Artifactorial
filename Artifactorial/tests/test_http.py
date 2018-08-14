@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.management import call_command
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from Artifactorial.models import Artifact, AuthToken, Directory, Share
 
