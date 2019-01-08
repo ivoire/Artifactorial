@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('auth', '0007_alter_validators_add_error_messages'),
+        ('auth', '__first__'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
