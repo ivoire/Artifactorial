@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Artifactorial.  If not, see <http://www.gnu.org/licenses/>
 
-from __future__ import unicode_literals
-
 from django.contrib.auth import views as v_auth
 from django.conf.urls import url
 from django.urls import reverse_lazy
