@@ -38,6 +38,7 @@ def bytes2unicode(string):
     else:
         return bytes.decode(string, "utf-8")
 
+
 @pytest.fixture
 def users(db):
     group1 = Group.objects.create(name="grp1")
@@ -48,8 +49,7 @@ def users(db):
     user2.groups.add(group1)
     user3 = User.objects.create_user("user3", "user3@example.com", "123456")
 
-    return {"u": [user1, user2, user3],
-            "g": [group1, group2]}
+    return {"u": [user1, user2, user3], "g": [group1, group2]}
 
 
 class TestAuthToken(object):
@@ -57,7 +57,7 @@ class TestAuthToken(object):
         token = AuthToken.objects.create(user=users["u"][0])
         assert token.description == ""
         assert len(token.secret) == 32
-    
+
         assert str(token) == "%s ()" % users["u"][0].username
         users["u"][0].first_name = "Hello"
         users["u"][0].save()
@@ -92,12 +92,16 @@ class TestDirectory(object):
             directory.full_clean()
 
     def test_quota_max_value(self, db):
-        directory = Directory.objects.create(path="/pub", is_public=True, quota=sys.maxsize)
+        directory = Directory.objects.create(
+            path="/pub", is_public=True, quota=sys.maxsize
+        )
         directory.full_clean()
 
     def test_clean(self, users):
         # group or user but not both
-        directory = Directory.objects.create(path="/pub", user=users["u"][0], group=users["g"][0])
+        directory = Directory.objects.create(
+            path="/pub", user=users["u"][0], group=users["g"][0]
+        )
         with pytest.raises(ValidationError):
             directory.clean()
 
@@ -146,7 +150,9 @@ class TestDirectory(object):
         assert directory.is_writable_to(users["u"][1]) == True
         assert directory.is_writable_to(users["u"][2]) == True
 
-        directory = Directory.objects.create(path="/home/user1", user=users["u"][0], is_public=False)
+        directory = Directory.objects.create(
+            path="/home/user1", user=users["u"][0], is_public=False
+        )
         assert directory.is_visible_to(anon) == False
         assert directory.is_visible_to(users["u"][0]) == True
         assert directory.is_visible_to(users["u"][1]) == False
@@ -156,7 +162,9 @@ class TestDirectory(object):
         assert directory.is_writable_to(users["u"][1]) == False
         assert directory.is_writable_to(users["u"][2]) == False
 
-        directory = Directory.objects.create(path="/home/user2", user=users["u"][1], is_public=False)
+        directory = Directory.objects.create(
+            path="/home/user2", user=users["u"][1], is_public=False
+        )
         assert directory.is_visible_to(anon) == False
         assert directory.is_visible_to(users["u"][0]) == False
         assert directory.is_visible_to(users["u"][1]) == True
@@ -177,7 +185,9 @@ class TestDirectory(object):
         assert directory.is_writable_to(users["u"][1]) == True
         assert directory.is_writable_to(users["u"][2]) == False
 
-        directory = Directory.objects.create(path="/home/grp1", group=users["g"][0], is_public=False)
+        directory = Directory.objects.create(
+            path="/home/grp1", group=users["g"][0], is_public=False
+        )
         assert directory.is_visible_to(anon) == False
         assert directory.is_visible_to(users["u"][0]) == True
         assert directory.is_visible_to(users["u"][1]) == True
@@ -198,7 +208,9 @@ class TestDirectory(object):
         assert directory.is_writable_to(users["u"][1]) == True
         assert directory.is_writable_to(users["u"][2]) == False
 
-        directory = Directory.objects.create(path="/home/grp2", group=users["g"][1], is_public=False)
+        directory = Directory.objects.create(
+            path="/home/grp2", group=users["g"][1], is_public=False
+        )
         assert directory.is_visible_to(anon) == False
         assert directory.is_visible_to(users["u"][0]) == True
         assert directory.is_visible_to(users["u"][1]) == False
@@ -220,15 +232,17 @@ class TestDirectory(object):
         assert directory.is_writable_to(users["u"][2]) == False
 
     def test_quota_progress(self, users):
-        directory = Directory.objects.create(path="/home/grp2", group=users["g"][1], quota=500)
+        directory = Directory.objects.create(
+            path="/home/grp2", group=users["g"][1], quota=500
+        )
         assert directory.size() == 0
         assert directory.quota_progress() == 0
 
-        directory.size = lambda : 50
+        directory.size = lambda: 50
         assert directory.size() == 50
         assert directory.quota_progress() == 10
 
-        directory.size = lambda : 500
+        directory.size = lambda: 500
         assert directory.size() == 500
         assert directory.quota_progress() == 100
 
@@ -324,7 +338,9 @@ class TestArtifact(object):
         filename = str(user_root.join("my_file.txt"))
         with open(filename, "w") as f_out:
             f_out.write("Hello World!")
-        artifact = Artifact.objects.create(directory=directory, path=filename, is_permanent=True)
+        artifact = Artifact.objects.create(
+            directory=directory, path=filename, is_permanent=True
+        )
 
         assert artifact.path.size == 12
         assert str(artifact) == filename

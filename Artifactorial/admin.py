@@ -28,7 +28,7 @@ import datetime
 
 
 class AuthTokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'description')
+    list_display = ("user", "description")
 
 
 class ArtifactAdmin(admin.ModelAdmin):
@@ -41,30 +41,35 @@ class ArtifactAdmin(admin.ModelAdmin):
     def full_path(self, obj):
         return "/" + obj.path.name
 
-    list_display = ('full_path', 'size', 'directory', 'is_permanent', 'created_at', 'ttl')
-    list_filter = ('directory', )
+    list_display = (
+        "full_path",
+        "size",
+        "directory",
+        "is_permanent",
+        "created_at",
+        "ttl",
+    )
+    list_filter = ("directory",)
 
     def get_readonly_fields(self, request, obj=None):
-        if obj: # editing an existing object
-            return ('directory', )
+        if obj:  # editing an existing object
+            return ("directory",)
         return ()
 
 
 class DirectoryAdmin(admin.ModelAdmin):
     def current_size(self, obj):
-        return "%s / %s" % (filesizeformat(obj.size()),
-                            filesizeformat(obj.quota))
+        return "%s / %s" % (filesizeformat(obj.size()), filesizeformat(obj.quota))
 
-    list_display = ('path', 'user', 'group', 'is_public', 'ttl',
-                    'current_size')
+    list_display = ("path", "user", "group", "is_public", "ttl", "current_size")
 
 
 class ShareAdmin(admin.ModelAdmin):
     def artifact_name(self, obj):
         return "/" + obj.artifact.path.name
 
-    list_display = ('artifact_name', 'token')
-    ordering = ('artifact__path', 'token')
+    list_display = ("artifact_name", "token")
+    ordering = ("artifact__path", "token")
 
 
 admin.site.register(AuthToken, AuthTokenAdmin)

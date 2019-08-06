@@ -48,8 +48,7 @@ def users(db):
     user2.groups.add(group1)
     user3 = User.objects.create_user("user3", "user3@example.com", "123456")
 
-    return {"u": [user1, user2, user3],
-            "g": [group1, group2]}
+    return {"u": [user1, user2, user3], "g": [group1, group2]}
 
 
 class TestClean(object):

@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('Artifactorial', '0002_use_biginteger_for_quota'),
-    ]
+    dependencies = [("Artifactorial", "0002_use_biginteger_for_quota")]
 
     operations = [
         migrations.AlterField(
-            model_name='directory',
-            name='path',
+            model_name="directory",
+            name="path",
             field=models.CharField(max_length=300, unique=True),
-        ),
+        )
     ]

@@ -29,14 +29,17 @@ import os
 
 class Command(BaseCommand):
     args = None
-    help = 'Clean old files'
+    help = "Clean old files"
 
     def add_arguments(self, parser):
-        parser.add_argument("--purge", dest="purge",
-                            action="store_true", default=False,
-                            help="Also remove permanent artifacts")
-        parser.add_argument("--ttl", default=None,
-                            help="Override directory TTL")
+        parser.add_argument(
+            "--purge",
+            dest="purge",
+            action="store_true",
+            default=False,
+            help="Also remove permanent artifacts",
+        )
+        parser.add_argument("--ttl", default=None, help="Override directory TTL")
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Removing old files in:\n")

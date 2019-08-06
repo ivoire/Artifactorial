@@ -51,19 +51,20 @@ class AuthToken(models.Model):
 
 @python_2_unicode_compatible
 class Directory(models.Model):
-    path = models.CharField(max_length=300, unique=True,
-                            null=False, blank=False)
+    path = models.CharField(max_length=300, unique=True, null=False, blank=False)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
     is_public = models.BooleanField(default=False)
-    ttl = models.IntegerField(blank=False, default=90,
-                              help_text="Files TTL in days")
-    quota = models.BigIntegerField(blank=False, default=1024*1024*1024,
-                                   validators=[MinValueValidator(1)],
-                                   help_text='Size limit in Bytes')
+    ttl = models.IntegerField(blank=False, default=90, help_text="Files TTL in days")
+    quota = models.BigIntegerField(
+        blank=False,
+        default=1024 * 1024 * 1024,
+        validators=[MinValueValidator(1)],
+        help_text="Size limit in Bytes",
+    )
 
     class Meta:
-        verbose_name_plural = 'Directories'
+        verbose_name_plural = "Directories"
 
     def clean(self):
         """
@@ -72,10 +73,11 @@ class Directory(models.Model):
         if self.user is not None and self.group is not None:
             raise ValidationError("Cannot be owned by user and group")
         if not os.path.normpath(self.path) == self.path:
-            raise ValidationError({'path': ['Expecting a normalized path and '
-                                            'no trailing slashes']})
+            raise ValidationError(
+                {"path": ["Expecting a normalized path and " "no trailing slashes"]}
+            )
         if not os.path.isabs(self.path):
-            raise ValidationError({'path': ['Expecting an absolute path']})
+            raise ValidationError({"path": ["Expecting an absolute path"]})
 
     def __str__(self):
         if self.user is not None:
@@ -87,7 +89,7 @@ class Directory(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ("artifacts", [self.path[1:] + '/'])
+        return ("artifacts", [self.path[1:] + "/"])
 
     def is_visible_to(self, user):
         """
@@ -153,12 +155,13 @@ class Directory(models.Model):
 
 
 def get_path_name(instance, filename):
-    base_path = ''
+    base_path = ""
     if not instance.is_permanent:
         now = datetime.now()
-        base_path = now.strftime('%Y/%m/%d/%H/%M')
-    return os.path.normpath('/'.join([instance.directory.path,
-                                      base_path, filename])).strip('/')
+        base_path = now.strftime("%Y/%m/%d/%H/%M")
+    return os.path.normpath(
+        "/".join([instance.directory.path, base_path, filename])
+    ).strip("/")
 
 
 @python_2_unicode_compatible

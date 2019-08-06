@@ -18,8 +18,8 @@
 # along with Artifactorial.  If not, see <http://www.gnu.org/licenses/>
 
 # Redirection after logging-in
-LOGIN_REDIRECT_URL='artifacts.root'
+LOGIN_REDIRECT_URL = "artifacts.root"
 
 # Redirection after logging-out
 # Only when Django 1.10 is available on all systems
-#LOGOUT_REDIRECT_URL
+# LOGOUT_REDIRECT_URL
