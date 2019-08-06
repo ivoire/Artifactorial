@@ -28,6 +28,30 @@ stages:
   services:
   - docker:stable-dind
 
+########
+# Test #
+########
+.test: &test
+  <<: *job
+  stage: test
+  tags: [amd64]
+  before_script:
+  - apt-get update -qq
+  - apt-get install --no-install-recommends -y python3 python3-django python3-pytest python3-pytest-django
+  script:
+  - py.test-3 -v --junitxml=artifactorial.xml tests
+  artifacts:
+    reports:
+      junit:
+      - artifactorial.xml
+
+test-debian-9:
+  <<: *test
+  image: debian:9
+test-debian-10:
+  <<: *test
+  image: debian:10
+
 ###########
 # Analyze #
 ###########
