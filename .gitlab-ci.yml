@@ -46,12 +46,12 @@ stages:
       junit:
       - artifactorial.xml
 
-test-debian-9:
-  <<: *test
-  image: debian:9
 test-debian-10:
   <<: *test
   image: debian:10
+test-ubuntu-19.04:
+  <<: *test
+  image: ubuntu:19.04
 
 ###########
 # Analyze #
