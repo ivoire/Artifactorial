@@ -22,18 +22,10 @@ from django.core.management import call_command
 
 from Artifactorial.models import Artifact, Directory
 
-import binascii
 from datetime import timedelta
 import os
 import pytest
 import sys
-
-
-def bytes2unicode(string):
-    if sys.version < "3":
-        return string
-    else:
-        return bytes.decode(string, "utf-8")
 
 
 @pytest.fixture
@@ -61,8 +53,8 @@ class TestClean(object):
         user1_arts = []
         for (index, f_name) in enumerate(["file1.txt", "testing.py", "hello.jpg"]):
             filename = str(user1_root.join(f_name))
-            with open(filename, "w") as f_out:
-                f_out.write(bytes2unicode(binascii.b2a_hex(os.urandom(16))))
+            with open(filename, "wb") as f_out:
+                f_out.write(os.urandom(32))
             art = Artifact.objects.create(directory=dir1, path=filename)
             art.created_at -= timedelta(days=index)
             art.save()
@@ -70,8 +62,8 @@ class TestClean(object):
         user2_arts = []
         for (index, f_name) in enumerate(["file2.txt", "bla.py", "world.pdf"]):
             filename = str(user2_root.join(f_name))
-            with open(filename, "w") as f_out:
-                f_out.write(bytes2unicode(binascii.b2a_hex(os.urandom(16))))
+            with open(filename, "wb") as f_out:
+                f_out.write(os.urandom(32))
             art = Artifact.objects.create(directory=dir2, path=filename)
             art.created_at -= timedelta(days=index)
             art.save()

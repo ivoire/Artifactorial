@@ -32,13 +32,6 @@ import re
 import sys
 
 
-def bytes2unicode(string):
-    if sys.version < "3":
-        return string
-    else:
-        return bytes.decode(string, "utf-8")
-
-
 @pytest.fixture
 def users(db):
     group1 = Group.objects.create(name="grp1")
@@ -138,7 +131,7 @@ class TestDirectories(object):
 
         # Test with token
         response = client.get(
-            "%s?token=%s" % (reverse("directories.index"), bytes2unicode(token.secret))
+            "%s?token=%s" % (reverse("directories.index"), token.secret)
         )
         assert response.status_code == 200
         assert len(response.context["directories"]) == 2
@@ -167,7 +160,7 @@ class TestDirectories(object):
 
         # Test with token
         response = client.get(
-            "%s?token=%s" % (reverse("directories.index"), bytes2unicode(token.secret))
+            "%s?token=%s" % (reverse("directories.index"), token.secret)
         )
         assert response.status_code == 200
         assert len(response.context["directories"]) == 3
@@ -212,20 +205,20 @@ class TestShares(object):
         # Create a share for our own artifact
         response = client.put(
             reverse("shares.root"),
-            data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret),
+            data="path=/home/user1/bla.txt&token=%s" % token.secret,
         )
         assert response.status_code == 200
         pattern = re.compile("http://testserver/shares/([a-f0-9]+)$")
-        assert pattern.match(bytes2unicode(response.content))
+        assert pattern.match(response.content.decode("utf-8"))
 
         # Create a share for a readable artifact
         token = AuthToken.objects.create(user=users["u"][1])
         response = client.put(
             reverse("shares.root"),
-            data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret),
+            data="path=/home/user1/bla.txt&token=%s" % token.secret,
         )
         assert response.status_code == 200
-        match = pattern.match(bytes2unicode(response.content))
+        match = pattern.match(response.content.decode("utf-8"))
         assert match
 
         share_token = match.groups()[0]
@@ -233,7 +226,7 @@ class TestShares(object):
         assert response.status_code == 200
         resp = list(response.streaming_content)
         assert len(resp) == 1
-        assert bytes2unicode(resp[0]) == "something"
+        assert resp[0].decode("utf-8") == "something"
         assert response["Content-Type"] == "text/plain"
         assert response["Content-Length"] == "9"
 
@@ -262,8 +255,7 @@ class TestShares(object):
         client.logout()
         token = AuthToken.objects.create(user=users["u"][0])
         response = client.delete(
-            "%s?token=%s"
-            % (reverse("shares", args=[s1.token]), bytes2unicode(token.secret))
+            "%s?token=%s" % (reverse("shares", args=[s1.token]), token.secret)
         )
         assert response.status_code == 200
 
@@ -278,7 +270,7 @@ class TestShares(object):
         # dir1 is not public
         response = client.put(
             reverse("shares.root"),
-            data="path=/home/user1/bla.txt&token=%s" % bytes2unicode(token.secret),
+            data="path=/home/user1/bla.txt&token=%s" % token.secret,
         )
         assert response.status_code == 403
 
@@ -414,7 +406,7 @@ class TestPostingArtifacts(object):
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
         assert response.status_code == 200
-        content = bytes2unicode(response.content)
+        content = response.content.decode("utf-8")
         assert content.startswith("http://testserver/artifacts/home/user1/")
         assert content.endswith("data.txt")
 
@@ -526,7 +518,7 @@ class TestPostingArtifacts(object):
                 reverse("artifacts", args=["pub"]), data={"path": f_in}
             )
         assert response.status_code == 200
-        content = bytes2unicode(response.content)
+        content = response.content.decode("utf-8")
         assert content.startswith("http://testserver/artifacts/pub/")
         assert not content.startswith("http://testserver/artifacts/pub/debian")
 
@@ -536,7 +528,7 @@ class TestPostingArtifacts(object):
                 reverse("artifacts", args=["pub/debian"]), data={"path": f_in}
             )
         assert response.status_code == 200
-        content = bytes2unicode(response.content)
+        content = response.content.decode("utf-8")
         assert content.startswith("http://testserver/artifacts/pub/debian")
         assert not content.startswith("http://testserver/artifacts/pub/debian/data.txt")
 
@@ -557,8 +549,8 @@ class TestPostingArtifacts(object):
                 data={"path": f_in, "is_permanent": True},
             )
         assert response.status_code == 200
-        content = bytes2unicode(response.content)
-        assert content == "http://testserver/artifacts/pub/data.txt"
+        content = response.content
+        assert content == b"http://testserver/artifacts/pub/data.txt"
 
 
 @pytest.fixture
@@ -646,26 +638,24 @@ class TestGet(object):
         # As user1 using a token
         token = AuthToken.objects.create(user=users["u"][0])
         response = client.get(
-            "%s?token=%s"
-            % (reverse("artifacts", args=[""]), bytes2unicode(token.secret))
+            "%s?token=%s" % (reverse("artifacts", args=[""]), token.secret)
         )
         assert response.status_code == 200
         ctx = response.context
         assert ctx["directory"] == "/"
         assert ctx["directories"] == ["anonymous", "home", "pub"]
         assert ctx["files"] == []
-        assert ctx["token"] == bytes2unicode(token.secret)
+        assert ctx["token"] == token.secret
 
         response = client.get(
-            "%s?token=%s"
-            % (reverse("artifacts", args=["home/"]), bytes2unicode(token.secret))
+            "%s?token=%s" % (reverse("artifacts", args=["home/"]), token.secret)
         )
         assert response.status_code == 200
         ctx = response.context
         assert ctx["directory"] == "/home"
         assert ctx["directories"] == ["grp1", "grp2", "user1"]
         assert ctx["files"] == []
-        assert ctx["token"] == bytes2unicode(token.secret)
+        assert ctx["token"] == token.secret
 
         # As user2 using login
         assert client.login(username=users["u"][1], password="123456")
@@ -734,7 +724,7 @@ class TestGet(object):
         assert response.status_code == 200
         resp = list(response.streaming_content)
         assert len(resp) == 1
-        assert bytes2unicode(resp[0]) == "One image"
+        assert resp[0] == b"One image"
 
     def test_public_file(self, client, directories, tmpdir, users):
         anon_dir = directories[6]
@@ -746,7 +736,7 @@ class TestGet(object):
         assert response.status_code == 200
         resp = list(response.streaming_content)
         assert len(resp) == 1
-        assert bytes2unicode(resp[0]) == "One image"
+        assert resp[0] == b"One image"
 
         # As user2
         assert client.login(username=users["u"][1], password="123456")
@@ -754,7 +744,7 @@ class TestGet(object):
         assert response.status_code == 200
         resp = list(response.streaming_content)
         assert len(resp) == 1
-        assert bytes2unicode(resp[0]) == "One image"
+        assert resp[0] == b"One image"
 
 
 class TestHead(object):
@@ -772,8 +762,8 @@ class TestHead(object):
         )
         assert response.status_code == 200
         assert (
-            bytes2unicode(base64.b64decode(response["Content-MD5"]))
-            == "600ae9d6304b5d939e3dc10191536c58"
+            base64.b64decode(response["Content-MD5"])
+            == b"600ae9d6304b5d939e3dc10191536c58"
         )
 
         assert client.login(username=users["u"][0], password="123456")
@@ -782,8 +772,8 @@ class TestHead(object):
         )
         assert response.status_code == 200
         assert (
-            bytes2unicode(base64.b64decode(response["Content-MD5"]))
-            == "600ae9d6304b5d939e3dc10191536c58"
+            base64.b64decode(response["Content-MD5"])
+            == b"600ae9d6304b5d939e3dc10191536c58"
         )
 
     def test_private_artifact(self, client, settings, tmpdir, users):
@@ -806,8 +796,8 @@ class TestHead(object):
         )
         assert response.status_code == 200
         assert (
-            bytes2unicode(base64.b64decode(response["Content-MD5"]))
-            == "600ae9d6304b5d939e3dc10191536c58"
+            base64.b64decode(response["Content-MD5"])
+            == b"600ae9d6304b5d939e3dc10191536c58"
         )
         assert response["Content-Type"] == "text/plain"
         assert response["Content-Length"] == "22"
@@ -838,7 +828,7 @@ class TestDelete(object):
         path = Artifact.objects.filter(directory=d1)[0].path.path
         assert os.path.exists(path)
         assert response.status_code == 200
-        content = bytes2unicode(response.content)[27:]
+        content = response.content.decode("utf-8")[27:]
 
         # Delete as anonymous
         client.logout()
@@ -876,7 +866,7 @@ class TestDelete(object):
         path = Artifact.objects.filter(directory=d1)[0].path.path
         assert os.path.exists(path)
         assert response.status_code == 200
-        content = bytes2unicode(response.content)[27:]
+        content = response.content.decode("utf-8")[27:]
 
         # Delete as anonymous
         client.logout()
@@ -909,7 +899,7 @@ class TestDelete(object):
         path = Artifact.objects.filter(directory=d1)[0].path.path
         assert os.path.exists(path)
         assert response.status_code == 200
-        content = bytes2unicode(response.content)[27:]
+        content = response.content.decode("utf-8")[27:]
 
         # Delete as anonymous
         client.logout()

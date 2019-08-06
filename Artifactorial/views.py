@@ -60,8 +60,7 @@ def get_current_user(request, token):
 
     # Try to match find the token
     try:
-        token = AuthToken.objects.get(secret=token)
-        return token.user
+        return AuthToken.objects.get(secret=token).user
     except AuthToken.DoesNotExist:
         return request.user
 

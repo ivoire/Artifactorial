@@ -22,7 +22,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import datetime, utc
 
 import binascii
@@ -32,10 +31,9 @@ import os
 
 def random_hash():
     """ Create a random string of size 32 """
-    return binascii.b2a_hex(os.urandom(16))
+    return binascii.b2a_hex(os.urandom(16)).decode("ascii")
 
 
-@python_2_unicode_compatible
 class AuthToken(models.Model):
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     secret = models.TextField(max_length=32, unique=True, default=random_hash)
@@ -48,7 +46,6 @@ class AuthToken(models.Model):
         return "%s (%s)" % (user, self.description)
 
 
-@python_2_unicode_compatible
 class Directory(models.Model):
     path = models.CharField(max_length=300, unique=True, null=False, blank=False)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
@@ -162,7 +159,6 @@ def get_path_name(instance, filename):
     ).strip("/")
 
 
-@python_2_unicode_compatible
 class Artifact(models.Model):
     path = models.FileField(upload_to=get_path_name)
     directory = models.ForeignKey(Directory, blank=False, on_delete=models.CASCADE)
@@ -182,7 +178,6 @@ class Artifact(models.Model):
         return self.directory.is_writable_to(user)
 
 
-@python_2_unicode_compatible
 class Share(models.Model):
     token = models.TextField(max_length=32, unique=True, default=random_hash)
     artifact = models.ForeignKey(Artifact, blank=False, on_delete=models.CASCADE)
