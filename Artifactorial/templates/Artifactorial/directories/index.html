@@ -9,44 +9,15 @@
     }
 {% endblock %}
 
+{% block nav_directories %}active{% endblock %}
+
 {% block body %}
 <div class="row">
   <div class="col-md-12">
     {% if user.is_authenticated %}
-    <h1>Directories for «{{ user.get_full_name|default:user.username }}»
-      <div class="btn-group pull-right">
-        <a type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">{{ user.get_full_name|default:user.username }}</a>
-        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
-          <li class="disabled"><a href=""><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
-          <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
-        </ul>
-      </div>
-    </h1>
+    <h1>Directories for «{{ user.get_full_name|default:user.username }}»</h1>
     {% else %}
-    <h1>Public directories
-      <div class="btn-group pull-right">
-        <button type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">Anonymous user</button>
-        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
-          <li class="disabled"><a href=""><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="{% url 'accounts.login' %}"><span class="glyphicon glyphicon-user"></span>Sign in</a></li>
-        </ul>
-      </div>
-    </h1>
+    <h1>Public directories</h1>
     {% endif %}
 
     <table class="table table-striped">
@@ -83,9 +54,4 @@
     </table>
   </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="{% static "Artifactorial/js/jquery-3.1.0.min.js" %}"></script>
-<script src="{% static "Artifactorial/js/bootstrap-v3.3.7.min.js" %}"></script>
 {% endblock %}

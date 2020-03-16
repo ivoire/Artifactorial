@@ -6,23 +6,7 @@
 {% block body %}
 <div class="row">
   <div class="col-md-12">
-    <h1>My profile
-      <div class="btn-group pull-right">
-        <a type="button" class="btn btn-info" href="{% url 'accounts.profile' %}">{{ user.get_full_name|default:user.username }}</a>
-        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-          <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="{% url 'artifacts.root' %}"><span class="glyphicon glyphicon-file"></span> Browse</a></li>
-          <li><a href="{% url 'directories.index' %}"><span class="glyphicon glyphicon-folder-open"></span> Directories</a></li>
-          <li><a href="{% url 'tokens.index' %}"><span class="glyphicon glyphicon-wrench"></span> Tokens</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="{% url 'accounts.logout' %}"><span class="glyphicon glyphicon-off"></span> Sign out</a></li>
-        </ul>
-      </div>
-    </h1>
+    <h1>My profile</h1>
   </div>
 
   <div class="col-md-6">
@@ -85,9 +69,4 @@
   </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
-<script src="{% static "Artifactorial/js/jquery-3.1.0.min.js" %}"></script>
-<script src="{% static "Artifactorial/js/bootstrap-v3.3.7.min.js" %}"></script>
 {% endblock %}
