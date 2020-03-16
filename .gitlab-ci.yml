@@ -50,6 +50,9 @@ stages:
 test-debian-10:
   <<: *test
   image: debian:10
+test-debian-11:
+  <<: *test
+  image: debian:bullseye
 test-ubuntu-19.04:
   <<: *test
   image: ubuntu:19.04
