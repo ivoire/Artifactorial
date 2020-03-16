@@ -155,7 +155,7 @@ def _get(request, filename):
             "json": "application/json",
             "yaml": "application/yaml",
         }
-        if formating not in ["html", "json", "yaml"]:
+        if formating not in content_types:
             return HttpResponseBadRequest()
 
         # Build the breadcrumb
