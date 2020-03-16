@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -q && \
     apt-get install --no-install-recommends --yes gunicorn3 python3 python3-pip python3-yaml && \
     python3 -m pip install --upgrade "django>=2.2,<=2.3" whitenoise && \
+    python3 -m pip install sentry-sdk && \
     # Cleanup
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
