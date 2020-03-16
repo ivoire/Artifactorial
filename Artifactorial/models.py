@@ -70,7 +70,7 @@ class Directory(models.Model):
             raise ValidationError("Cannot be owned by user and group")
         if not os.path.normpath(self.path) == self.path:
             raise ValidationError(
-                {"path": ["Expecting a normalized path and " "no trailing slashes"]}
+                {"path": ["Expecting a normalized path and no trailing slashes"]}
             )
         if not os.path.isabs(self.path):
             raise ValidationError({"path": ["Expecting an absolute path"]})
