@@ -1,0 +1,28 @@
+version: "3.4"
+services:
+  db:
+    image: ${KC_POSTGRES_IMAGE}
+    environment:
+      POSTGRES_USER: artiractorial
+      POSTGRES_PASSWORD: artifactorial-password
+    volumes:
+    - db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  web:
+    build: .
+    image: ${KC_IMAGE}
+    volumes:
+    - data:/var/lib/artifactorial/
+    - ./share/artifactorial.yaml:/etc/artifactorial.yaml:ro
+    depends_on:
+    - db
+    ports:
+    - "${KC_FRONT_PORT}:80"
+    restart: unless-stopped
+
+volumes:
+  db:
+    name: artifactorial-db
+  data:
+    name: artifactorial-data
