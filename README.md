@@ -1,6 +1,16 @@
 Artifactorial
 =============
 
+> **Maintenance status:** originally created by Rémi Duraffort at Linaro
+> (2014-2020, see the commit history for the full original authorship).
+> The upstream project (https://github.com/ivoire/Artifactorial, canonically
+> hosted at https://git.lavasoftware.org/ivoire/Artifactorial) appears
+> unmaintained since 2020 -- no commits since, no working CI, and its own
+> published Docker registry (`hub.lavasoftware.org`) and canonical GitLab
+> host are both offline. This fork, https://github.com/igaw/Artifactorial,
+> is where active maintenance (dependency updates, a current Django/Python
+> target, CI, published container images) continues from 2026 onwards.
+
 Artifactorial is a web application that allows one to easily upload files on
 the server. The application will help you to control the users that can view
 and upload files and the available pseudo directories.
