@@ -1,25 +1,21 @@
-# -*- coding: utf-8 -*-
 # vim: set ts=4
 #
 # Copyright 2017-present Linaro Limited
+# Copyright 2026 Daniel Wagner
 #
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
 # SPDX-License-Identifier: MIT
 
-from django.contrib.auth.models import AnonymousUser, Group, User
-from django.core.management import call_command
+import base64
+import os
+import re
+
+import pytest
+from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
 from Artifactorial.models import Artifact, AuthToken, Directory, Share
-
-import base64
-import binascii
-from datetime import timedelta
-import os
-import pytest
-import re
-import sys
 
 
 @pytest.fixture
@@ -35,7 +31,7 @@ def users(db):
     return {"u": [user1, user2, user3], "g": [group1, group2]}
 
 
-class TestHTTPCode(object):
+class TestHTTPCode:
     def test_empty_get(self, client, db):
         response = client.get(reverse("home"))
         assert response.status_code == 200
@@ -72,13 +68,13 @@ class TestHTTPCode(object):
         assert response.status_code == 405
 
     def test_invalid_formating(self, client, db):
-        response = client.get("%s?format=html" % reverse("artifacts", args=[""]))
+        response = client.get("{}?format=html".format(reverse("artifacts", args=[""])))
         assert response.status_code == 200
-        response = client.get("%s?format=json" % reverse("artifacts", args=[""]))
+        response = client.get("{}?format=json".format(reverse("artifacts", args=[""])))
         assert response.status_code == 200
-        response = client.get("%s?format=yaml" % reverse("artifacts", args=[""]))
+        response = client.get("{}?format=yaml".format(reverse("artifacts", args=[""])))
         assert response.status_code == 200
-        response = client.get("%s?format=cvs" % reverse("artifacts", args=[""]))
+        response = client.get("{}?format=cvs".format(reverse("artifacts", args=[""])))
         assert response.status_code == 400
 
     def test_verbs_on_shares_root(self, client, db):
@@ -90,7 +86,7 @@ class TestHTTPCode(object):
         assert response.status_code == 405
 
 
-class TestDirectories(object):
+class TestDirectories:
     def test_empty(self, client, db):
         response = client.get(reverse("directories.index"))
         assert response.status_code == 200
@@ -121,7 +117,7 @@ class TestDirectories(object):
 
         # Test with token
         response = client.get(
-            "%s?token=%s" % (reverse("directories.index"), token.secret)
+            "{}?token={}".format(reverse("directories.index"), token.secret)
         )
         assert response.status_code == 200
         assert len(response.context["directories"]) == 2
@@ -150,7 +146,7 @@ class TestDirectories(object):
 
         # Test with token
         response = client.get(
-            "%s?token=%s" % (reverse("directories.index"), token.secret)
+            "{}?token={}".format(reverse("directories.index"), token.secret)
         )
         assert response.status_code == 200
         assert len(response.context["directories"]) == 3
@@ -174,7 +170,7 @@ class TestDirectories(object):
         assert response.context["directories"][2][1] == True
 
 
-class TestShares(object):
+class TestShares:
     def test_invalid_verbs(self, client):
         assert client.post(reverse("shares", args=["123"])).status_code == 405
 
@@ -189,13 +185,13 @@ class TestShares(object):
         dir1 = Directory.objects.create(
             path="/home/user1", user=users["u"][0], is_public=True
         )
-        art1 = Artifact.objects.create(path="home/user1/bla.txt", directory=dir1)
+        Artifact.objects.create(path="home/user1/bla.txt", directory=dir1)
         token = AuthToken.objects.create(user=users["u"][0])
 
         # Create a share for our own artifact
         response = client.put(
             reverse("shares.root"),
-            data="path=/home/user1/bla.txt&token=%s" % token.secret,
+            data=f"path=/home/user1/bla.txt&token={token.secret}",
         )
         assert response.status_code == 200
         pattern = re.compile("http://testserver/shares/([a-f0-9]+)$")
@@ -205,7 +201,7 @@ class TestShares(object):
         token = AuthToken.objects.create(user=users["u"][1])
         response = client.put(
             reverse("shares.root"),
-            data="path=/home/user1/bla.txt&token=%s" % token.secret,
+            data=f"path=/home/user1/bla.txt&token={token.secret}",
         )
         assert response.status_code == 200
         match = pattern.match(response.content.decode("utf-8"))
@@ -245,7 +241,7 @@ class TestShares(object):
         client.logout()
         token = AuthToken.objects.create(user=users["u"][0])
         response = client.delete(
-            "%s?token=%s" % (reverse("shares", args=[s1.token]), token.secret)
+            "{}?token={}".format(reverse("shares", args=[s1.token]), token.secret)
         )
         assert response.status_code == 200
 
@@ -254,13 +250,13 @@ class TestShares(object):
         assert client.get(reverse("shares.root")).status_code == 405
 
         dir1 = Directory.objects.create(path="/home/user1", user=users["u"][0])
-        art1 = Artifact.objects.create(path="home/user1/bla.txt", directory=dir1)
+        Artifact.objects.create(path="home/user1/bla.txt", directory=dir1)
         token = AuthToken.objects.create(user=users["u"][1])
 
         # dir1 is not public
         response = client.put(
             reverse("shares.root"),
-            data="path=/home/user1/bla.txt&token=%s" % token.secret,
+            data=f"path=/home/user1/bla.txt&token={token.secret}",
         )
         assert response.status_code == 403
 
@@ -271,7 +267,7 @@ class TestShares(object):
         assert response.status_code == 403
 
 
-class TestTokens(object):
+class TestTokens:
     def test_anonymous_list(self, client):
         # Redirection to the authentication page
         response = client.get(reverse("tokens.index"))
@@ -287,7 +283,7 @@ class TestTokens(object):
         # Add some tokens using the ORM
         t1 = AuthToken.objects.create(user=users["u"][0])
         t2 = AuthToken.objects.create(user=users["u"][1])
-        t3 = AuthToken.objects.create(user=users["u"][2])
+        AuthToken.objects.create(user=users["u"][2])
         t4 = AuthToken.objects.create(user=users["u"][0], description="Hello")
         response = client.get(reverse("tokens.index"))
         assert response.status_code == 200
@@ -365,7 +361,7 @@ class TestTokens(object):
         assert AuthToken.objects.get(user=users["u"][2]) == t3
 
 
-class TestPostingArtifacts(object):
+class TestPostingArtifacts:
     def test_push_non_existent_directory(self, client, settings, tmpdir, users):
         media = tmpdir.mkdir("media")
         settings.MEDIA_ROOT = str(media)
@@ -391,7 +387,7 @@ class TestPostingArtifacts(object):
         d = Directory.objects.create(path="/home/user1", user=users["u"][0])
 
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
@@ -403,7 +399,7 @@ class TestPostingArtifacts(object):
         # Change the quota and try to add another file
         d.quota = 27
         d.save()
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
@@ -412,7 +408,7 @@ class TestPostingArtifacts(object):
         # Fill completely the directory
         d.quota = 28
         d.save()
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
@@ -424,11 +420,11 @@ class TestPostingArtifacts(object):
         with open(filename, "w") as f_out:
             f_out.write("Hello World!!!")
         settings.MEDIA_ROOT = str(media)
-        d = Directory.objects.create(path="/home/user1", group=users["g"][0])
+        Directory.objects.create(path="/home/user1", group=users["g"][0])
 
         # Same group
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
@@ -436,7 +432,7 @@ class TestPostingArtifacts(object):
 
         # Same group
         assert client.login(username=users["u"][1], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
@@ -444,7 +440,7 @@ class TestPostingArtifacts(object):
 
         # Another group
         assert client.login(username=users["u"][2], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
@@ -452,7 +448,7 @@ class TestPostingArtifacts(object):
 
         # Anonymous user
         client.logout()
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["home/user1"]), data={"path": f_in}
             )
@@ -464,16 +460,16 @@ class TestPostingArtifacts(object):
         with open(filename, "w") as f_out:
             f_out.write("Hello World!!!")
         settings.MEDIA_ROOT = str(media)
-        d = Directory.objects.create(path="/pub")
+        Directory.objects.create(path="/pub")
 
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["pub/"]), data={"path": f_in}
             )
         assert response.status_code == 200
 
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["pub/"]), data={"path": f_in}
             )
@@ -485,11 +481,11 @@ class TestPostingArtifacts(object):
         with open(filename, "w") as f_out:
             f_out.write("Hello World!!!")
         settings.MEDIA_ROOT = str(media)
-        d = Directory.objects.create(path="/home/user1", user=users["u"][0])
+        Directory.objects.create(path="/home/user1", user=users["u"][0])
 
         # Do not send a path
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename):
             response = client.post(reverse("artifacts", args=["home/user1"]), data={})
         assert response.status_code == 400
 
@@ -503,7 +499,7 @@ class TestPostingArtifacts(object):
         d1 = Directory.objects.create(path="/pub")
         d2 = Directory.objects.create(path="/pub/debian", user=users["u"][0])
 
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["pub"]), data={"path": f_in}
             )
@@ -513,7 +509,7 @@ class TestPostingArtifacts(object):
         assert not content.startswith("http://testserver/artifacts/pub/debian")
 
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["pub/debian"]), data={"path": f_in}
             )
@@ -531,9 +527,9 @@ class TestPostingArtifacts(object):
         with open(filename, "w") as f_out:
             f_out.write("Hello World!!!")
         settings.MEDIA_ROOT = str(media)
-        d1 = Directory.objects.create(path="/pub")
+        Directory.objects.create(path="/pub")
 
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["pub"]),
                 data={"path": f_in, "is_permanent": True},
@@ -570,13 +566,13 @@ def directories(client, settings, tmpdir, users):
         f_in.write("One image")
 
     # Create anonymous artifact
-    with open(str(img), "r") as f_in:
+    with open(str(img)) as f_in:
         client.post(reverse("artifacts", args=["anonymous/"]), data={"path": f_in})
 
     return [d1, d2, d3, d4, d5, d6, d7]
 
 
-class TestGet(object):
+class TestGet:
     def test_public_directory(self, client, directories, users):
         anon_dir = directories[6]
         anon_artifact = Artifact.objects.get(directory=anon_dir)
@@ -601,26 +597,24 @@ class TestGet(object):
         assert response.status_code == 200
         ctx = response.context
         assert ctx["directory"] == "/anonymous"
-        assert ctx["directories"] == [anon_url[1]]
-        assert ctx["files"] == []
-        assert ctx["token"] == None
-
-        response = client.get(
-            reverse("artifacts", args=["anonymous/%s/" % anon_url[1]])
-        )
-        assert response.status_code == 200
-        ctx = response.context
-        assert ctx["directory"] == "/anonymous/%s" % anon_url[1]
         assert ctx["directories"] == [anon_url[2]]
         assert ctx["files"] == []
         assert ctx["token"] == None
 
+        response = client.get(reverse("artifacts", args=[f"anonymous/{anon_url[2]}/"]))
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx["directory"] == f"/anonymous/{anon_url[2]}"
+        assert ctx["directories"] == [anon_url[3]]
+        assert ctx["files"] == []
+        assert ctx["token"] == None
+
         response = client.get(
-            reverse("artifacts", args=["%s/" % "/".join(anon_url[:-1])])
+            reverse("artifacts", args=["{}/".format("/".join(anon_url[:-1]))])
         )
         assert response.status_code == 200
         ctx = response.context
-        assert ctx["directory"] == "/%s" % "/".join(anon_url[:-1])
+        assert ctx["directory"] == "/{}".format("/".join(anon_url[:-1]))
         assert ctx["directories"] == []
         assert ctx["files"] == [(anon_url[-1], 9)]
         assert ctx["token"] == None
@@ -628,7 +622,7 @@ class TestGet(object):
         # As user1 using a token
         token = AuthToken.objects.create(user=users["u"][0])
         response = client.get(
-            "%s?token=%s" % (reverse("artifacts", args=[""]), token.secret)
+            "{}?token={}".format(reverse("artifacts", args=[""]), token.secret)
         )
         assert response.status_code == 200
         ctx = response.context
@@ -638,7 +632,7 @@ class TestGet(object):
         assert ctx["token"] == token.secret
 
         response = client.get(
-            "%s?token=%s" % (reverse("artifacts", args=["home/"]), token.secret)
+            "{}?token={}".format(reverse("artifacts", args=["home/"]), token.secret)
         )
         assert response.status_code == 200
         ctx = response.context
@@ -673,15 +667,14 @@ class TestGet(object):
 
         # As user1
         assert client.login(username=users["u"][0], password="123456")
-        with open(str(img), "r") as f_in:
+        with open(str(img)) as f_in:
             client.post(
                 reverse("artifacts", args=["home/user1/"]),
                 data={"path": f_in, "is_permanent": True},
             )
 
         private_dir = directories[0]
-        private_artifact = Artifact.objects.get(directory=private_dir)
-        private_url = private_artifact.path.url
+        Artifact.objects.get(directory=private_dir)
 
         response = client.get(reverse("artifacts", args=["home/user1/"]))
         assert response.status_code == 200
@@ -719,7 +712,6 @@ class TestGet(object):
     def test_public_file(self, client, directories, tmpdir, users):
         anon_dir = directories[6]
         anon_artifact = Artifact.objects.get(directory=anon_dir)
-        anon_url = anon_artifact.path.url.split("/")
 
         # As Anonymous
         response = client.get(reverse("artifacts", args=[anon_artifact.path.url]))
@@ -737,7 +729,7 @@ class TestGet(object):
         assert resp[0] == b"One image"
 
 
-class TestHead(object):
+class TestHead:
     def test_public_artifact(self, client, settings, tmpdir, users):
         media = tmpdir.mkdir("media")
         filename = str(media.mkdir("pub").mkdir("debian").join("take_my_sum.txt"))
@@ -745,7 +737,7 @@ class TestHead(object):
             f_out.write("some sort of test data")
         settings.MEDIA_ROOT = str(media)
         d = Directory.objects.create(path="/pub/debian", is_public=True)
-        art1 = Artifact.objects.create(path="pub/debian/take_my_sum.txt", directory=d)
+        Artifact.objects.create(path="pub/debian/take_my_sum.txt", directory=d)
 
         response = client.head(
             reverse("artifacts", args=["pub/debian/take_my_sum.txt"])
@@ -773,7 +765,7 @@ class TestHead(object):
             f_out.write("some sort of test data")
         settings.MEDIA_ROOT = str(media)
         d = Directory.objects.create(path="/pub/debian", group=users["g"][0])
-        art1 = Artifact.objects.create(path="pub/debian/take_my_sum.txt", directory=d)
+        Artifact.objects.create(path="pub/debian/take_my_sum.txt", directory=d)
 
         response = client.head(
             reverse("artifacts", args=["pub/debian/take_my_sum.txt"])
@@ -793,7 +785,7 @@ class TestHead(object):
         assert response["Content-Length"] == "22"
 
 
-class TestDelete(object):
+class TestDelete:
     def test_invalid_delete(self, client):
         assert (
             client.delete(reverse("artifacts", args=["/home/bla/"])).status_code == 400
@@ -809,7 +801,7 @@ class TestDelete(object):
             f_out.write("one more file")
 
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["private/user1"]),
                 data={"path": f_in, "is_permanent": True},
@@ -847,7 +839,7 @@ class TestDelete(object):
             f_out.write("one more file")
 
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["private/grp1"]),
                 data={"path": f_in, "is_permanent": True},
@@ -880,7 +872,7 @@ class TestDelete(object):
             f_out.write("one more file")
 
         assert client.login(username=users["u"][0], password="123456")
-        with open(filename, "r") as f_in:
+        with open(filename) as f_in:
             response = client.post(
                 reverse("artifacts", args=["anon"]),
                 data={"path": f_in, "is_permanent": True},

@@ -1,27 +1,27 @@
-# -*- coding: utf-8 -*-
 # vim: set ts=4
 #
 # Copyright 2014-2017 Rémi Duraffort
 # Copyright 2017-present Linaro Limited
+# Copyright 2026 Daniel Wagner
 #
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
 # SPDX-License-Identifier: MIT
 
-from django.contrib.auth.models import User, Group
+import binascii
+import os
+from datetime import timedelta
+
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
-from django.utils.timezone import datetime, utc
-
-import binascii
-from datetime import timedelta
-import os
+from django.utils import timezone
 
 
 def random_hash():
-    """ Create a random string of size 32 """
+    """Create a random string of size 32"""
     return binascii.b2a_hex(os.urandom(16)).decode("ascii")
 
 
@@ -34,7 +34,7 @@ class AuthToken(models.Model):
         user = self.user.get_full_name()
         if not user:
             user = self.user.username
-        return "%s (%s)" % (user, self.description)
+        return f"{user} ({self.description})"
 
 
 class Directory(models.Model):
@@ -68,11 +68,11 @@ class Directory(models.Model):
 
     def __str__(self):
         if self.user is not None:
-            return "%s (user: %s)" % (self.path, self.user)
+            return f"{self.path} (user: {self.user})"
         elif self.group is not None:
-            return "%s (group: %s)" % (self.path, self.group)
+            return f"{self.path} (group: {self.group})"
         else:
-            return "%s (anonymous)" % (self.path)
+            return f"{self.path} (anonymous)"
 
     def get_absolute_url(self):
         return reverse("artifacts", args=[self.path[1:] + "/"])
@@ -117,7 +117,7 @@ class Directory(models.Model):
         return size
 
     def quota_progress(self):
-        return int(round(float(self.size()) / self.quota * 100))
+        return round(float(self.size()) / self.quota * 100)
 
     def clean_old_files(self, purge, override_ttl=None):
         """
@@ -131,7 +131,7 @@ class Directory(models.Model):
         # Except when purge is True (we will remove everything)
         if ttl == 0 and not purge:
             return
-        now = datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         older_than = now - timedelta(days=ttl)
         query = self.artifact_set.filter(created_at__lt=older_than)
         # Also remove permanent artifacts
@@ -143,11 +143,11 @@ class Directory(models.Model):
 def get_path_name(instance, filename):
     base_path = ""
     if not instance.is_permanent:
-        now = datetime.now()
+        now = timezone.now()
         base_path = now.strftime("%Y/%m/%d/%H/%M")
-    return os.path.normpath(
-        "/".join([instance.directory.path, base_path, filename])
-    ).strip("/")
+    return os.path.normpath(f"{instance.directory.path}/{base_path}/{filename}").strip(
+        "/"
+    )
 
 
 class Artifact(models.Model):
@@ -175,7 +175,7 @@ class Share(models.Model):
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s -> %s" % (self.token, self.artifact)
+        return f"{self.token} -> {self.artifact}"
 
     def get_absolute_url(self):
         return reverse("shares", args=[self.token])

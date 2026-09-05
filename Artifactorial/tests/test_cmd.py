@@ -1,21 +1,20 @@
-# -*- coding: utf-8 -*-
 # vim: set ts=4
 #
 # Copyright 2017-present Linaro Limited
+# Copyright 2026 Daniel Wagner
 #
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
 # SPDX-License-Identifier: MIT
 
-from django.contrib.auth.models import AnonymousUser, Group, User
+import os
+from datetime import timedelta
+
+import pytest
+from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 
 from Artifactorial.models import Artifact, Directory
-
-from datetime import timedelta
-import os
-import pytest
-import sys
 
 
 @pytest.fixture
@@ -31,7 +30,7 @@ def users(db):
     return {"u": [user1, user2, user3], "g": [group1, group2]}
 
 
-class TestClean(object):
+class TestClean:
     def test_clean(self, users, settings, tmpdir):
         media = tmpdir.mkdir("media")
         settings.MEDIA_ROOT = str(media)
@@ -41,7 +40,7 @@ class TestClean(object):
         user2_root = media.join("home").mkdir("user2")
 
         user1_arts = []
-        for (index, f_name) in enumerate(["file1.txt", "testing.py", "hello.jpg"]):
+        for index, f_name in enumerate(["file1.txt", "testing.py", "hello.jpg"]):
             filename = str(user1_root.join(f_name))
             with open(filename, "wb") as f_out:
                 f_out.write(os.urandom(32))
@@ -50,7 +49,7 @@ class TestClean(object):
             art.save()
             user1_arts.append(art)
         user2_arts = []
-        for (index, f_name) in enumerate(["file2.txt", "bla.py", "world.pdf"]):
+        for index, f_name in enumerate(["file2.txt", "bla.py", "world.pdf"]):
             filename = str(user2_root.join(f_name))
             with open(filename, "wb") as f_out:
                 f_out.write(os.urandom(32))

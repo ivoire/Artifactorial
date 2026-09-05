@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 # vim: set ts=4
 #
 # Copyright 2016-2017 Rémi Duraffort
 # Copyright 2017-present Linaro Limited
+# Copyright 2026 Daniel Wagner
 #
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
@@ -16,4 +16,4 @@ class ArtifactorialConfig(AppConfig):
     verbose_name = "Artifactorial"
 
     def ready(self):
-        import Artifactorial.signals
+        from Artifactorial import signals  # noqa: F401

@@ -1,14 +1,18 @@
-# -*- coding: utf-8 -*-
 # vim: set ts=4
 #
 # Copyright 2014-2017 Rémi Duraffort
 # Copyright 2017-present Linaro Limited
+# Copyright 2026 Daniel Wagner
 #
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
 # SPDX-License-Identifier: MIT
 
-from django.urls import reverse
+import base64
+import hashlib
+import mimetypes
+import os
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.forms import ModelForm
@@ -23,14 +27,10 @@ from django.http import (
     QueryDict,
 )
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from Artifactorial.models import AuthToken, Artifact, Directory, Share
-
-import base64
-import hashlib
-import mimetypes
-import os
+from Artifactorial.models import Artifact, AuthToken, Directory, Share
 
 
 class ArtifactForm(ModelForm):
@@ -90,14 +90,17 @@ def _get(request, filename):
         # Special case for the root directory
         if dirname == "/":
             dirname_length = 0
+        artifact_name_prefix_length = (
+            0 if dirname == "/" else len(dirname.lstrip("/")) + 1
+        )
 
         dir_set = set()
-        art_list = list()
+        art_list = []
         in_real_directory = False
 
         # List real directories
         directories = Directory.objects.filter(
-            Q(path__startswith="%s" % (dirname)) | Q(path=dirname)
+            Q(path__startswith=f"{dirname}") | Q(path=dirname)
         )
         directories = directories.select_related("user", "group")
         for directory in directories:
@@ -121,14 +124,12 @@ def _get(request, filename):
         for artifact in artifacts:
             if not artifact.is_visible_to(user):
                 continue
-            relative_name = artifact.path.name[dirname_length:]
+            relative_name = artifact.path.name[artifact_name_prefix_length:]
             # Add pseudo directory (if the name contains a '/')
             if "/" in relative_name:
                 dir_set.add(relative_name[: relative_name.index("/")])
             else:
-                art_list.append(
-                    (artifact.path.name[dirname_length:], artifact.path.size)
-                )
+                art_list.append((relative_name, artifact.path.size))
 
         # Raise an error if the directory does not exist
         if (
@@ -161,7 +162,7 @@ def _get(request, filename):
 
         return render(
             request,
-            "Artifactorial/list.%s" % formating,
+            f"Artifactorial/list.{formating}",
             {
                 "directory": dirname,
                 "breadcrumb": breadcrumb,
@@ -181,9 +182,9 @@ def _get(request, filename):
 
         # Guess the mimetype
         mime = mimetypes.guess_type(artifact.path.name)
+        artifact_file = open(artifact.path.path, "rb")  # noqa: SIM115
         response = FileResponse(
-            open(artifact.path.path, "rb"),
-            content_type=mime[0] if mime[0] else "text/plain",
+            artifact_file, content_type=mime[0] if mime[0] else "text/plain"
         )
 
         response["Content-Length"] = artifact.path.size
@@ -224,9 +225,11 @@ def _post(request, filename):
         return HttpResponseForbidden()
 
     # Check the quota
-    if "path" in request.FILES:
-        if request.FILES["path"].size + directory.size() > directory.quota:
-            return HttpResponseForbidden()
+    if (
+        "path" in request.FILES
+        and request.FILES["path"].size + directory.size() > directory.quota
+    ):
+        return HttpResponseForbidden()
 
     # Validate the updated form
     form = ArtifactForm(
@@ -240,7 +243,9 @@ def _post(request, filename):
         artifact = form.save()
         # TODO: does not work with alternate storage
         return HttpResponse(
-            request.build_absolute_uri(reverse("artifacts", args=[artifact.path.url])),
+            request.build_absolute_uri(
+                reverse("artifacts", args=[artifact.path.url.lstrip("/")])
+            ),
             content_type="text/plain",
         )
     else:
@@ -314,9 +319,9 @@ def shares(request, token):
 
         # Guess the mimetype
         mime = mimetypes.guess_type(artifact.path.name)
+        artifact_file = open(artifact.path.path, "rb")  # noqa: SIM115
         response = FileResponse(
-            open(artifact.path.path, "rb"),
-            content_type=mime[0] if mime[0] else "text/plain",
+            artifact_file, content_type=mime[0] if mime[0] else "text/plain"
         )
 
         response["Content-Length"] = artifact.path.size

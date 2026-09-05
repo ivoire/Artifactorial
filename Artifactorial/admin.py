@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
 # vim: set ts=4
 #
 # Copyright 2014-2017 Rémi Duraffort
 # Copyright 2017-present Linaro Limited
+# Copyright 2026 Daniel Wagner
 #
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
 # SPDX-License-Identifier: MIT
 
+import datetime
+
 from django.contrib import admin
 from django.template.defaultfilters import filesizeformat
 
-from Artifactorial.models import AuthToken, Artifact, Directory, Share
-
-import datetime
+from Artifactorial.models import Artifact, AuthToken, Directory, Share
 
 
 class AuthTokenAdmin(admin.ModelAdmin):
@@ -48,7 +48,7 @@ class ArtifactAdmin(admin.ModelAdmin):
 
 class DirectoryAdmin(admin.ModelAdmin):
     def current_size(self, obj):
-        return "%s / %s" % (filesizeformat(obj.size()), filesizeformat(obj.quota))
+        return f"{filesizeformat(obj.size())} / {filesizeformat(obj.quota)}"
 
     list_display = ("path", "user", "group", "is_public", "ttl", "current_size")
 

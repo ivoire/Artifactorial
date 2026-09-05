@@ -1,7 +1,7 @@
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, re_path
 
 urlpatterns = [
-    url(r"^admin/", admin.site.urls),
-    url(r"^", include("Artifactorial.urls")),
+    re_path(r"^admin/", admin.site.urls),
+    re_path(r"^", include("Artifactorial.urls")),
 ]

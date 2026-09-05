@@ -1,22 +1,22 @@
-# -*- coding: utf-8 -*-
 # vim: set ts=4
 #
 # Copyright 2017-present Linaro Limited
+# Copyright 2026 Daniel Wagner
 #
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
 # SPDX-License-Identifier: MIT
 
+import os
+import sys
+from datetime import timedelta
+
+import pytest
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
-from Artifactorial.models import Artifact, Directory, AuthToken, Share
-
-from datetime import timedelta
-import os
-import pytest
-import sys
+from Artifactorial.models import Artifact, AuthToken, Directory, Share
 
 
 @pytest.fixture
@@ -32,28 +32,28 @@ def users(db):
     return {"u": [user1, user2, user3], "g": [group1, group2]}
 
 
-class TestAuthToken(object):
+class TestAuthToken:
     def test_str(self, users):
         token = AuthToken.objects.create(user=users["u"][0])
         assert token.description == ""
         assert len(token.secret) == 32
 
-        assert str(token) == "%s ()" % users["u"][0].username
+        assert str(token) == "{} ()".format(users["u"][0].username)
         users["u"][0].first_name = "Hello"
         users["u"][0].save()
-        assert str(token) == "%s ()" % users["u"][0].get_full_name()
+        assert str(token) == "{} ()".format(users["u"][0].get_full_name())
 
 
-class TestDirectory(object):
+class TestDirectory:
     def test_str(self, users):
         directory = Directory.objects.create(path="/home/user1", user=users["u"][0])
-        assert str(directory) == "/home/user1 (user: %s)" % users["u"][0]
+        assert str(directory) == "/home/user1 (user: {})".format(users["u"][0])
 
         directory = Directory.objects.create(path="/home/user2", user=users["u"][0])
-        assert str(directory) == "/home/user2 (user: %s)" % users["u"][0]
+        assert str(directory) == "/home/user2 (user: {})".format(users["u"][0])
 
         directory = Directory.objects.create(path="/home/groups/1", group=users["g"][0])
-        assert str(directory) == "/home/groups/1 (group: %s)" % users["g"][0]
+        assert str(directory) == "/home/groups/1 (group: {})".format(users["g"][0])
 
         directory = Directory.objects.create(path="/pub", is_public=True)
         assert str(directory) == "/pub (anonymous)"
@@ -62,9 +62,9 @@ class TestDirectory(object):
         assert str(directory) == "/pub/private (anonymous)"
 
     def test_path_uniqueness(self, users):
-        directory = Directory.objects.create(path="/home/user1", user=users["u"][0])
+        Directory.objects.create(path="/home/user1", user=users["u"][0])
         with pytest.raises(IntegrityError):
-            directory = Directory.objects.create(path="/home/user1", user=users["u"][0])
+            Directory.objects.create(path="/home/user1", user=users["u"][0])
 
     def test_quota_min_value(self, db):
         directory = Directory.objects.create(path="/pub", is_public=True, quota=0)
@@ -235,7 +235,7 @@ class TestDirectory(object):
         user2_root = media.join("home").mkdir("user2")
 
         user1_arts = []
-        for (index, f_name) in enumerate(["file1.txt", "testing.py", "hello.jpg"]):
+        for index, f_name in enumerate(["file1.txt", "testing.py", "hello.jpg"]):
             filename = str(user1_root.join(f_name))
             with open(filename, "wb") as f_out:
                 f_out.write(os.urandom(32))
@@ -244,7 +244,7 @@ class TestDirectory(object):
             art.save()
             user1_arts.append(art)
         user2_arts = []
-        for (index, f_name) in enumerate(["file2.txt", "bla.py", "world.pdf"]):
+        for index, f_name in enumerate(["file2.txt", "bla.py", "world.pdf"]):
             filename = str(user2_root.join(f_name))
             with open(filename, "wb") as f_out:
                 f_out.write(os.urandom(32))
@@ -309,7 +309,7 @@ class TestDirectory(object):
         assert os.path.exists(user1_arts[2].path.path) == False
 
 
-class TestArtifact(object):
+class TestArtifact:
     def test_methods(self, users, settings, tmpdir):
         media = tmpdir.mkdir("media")
         settings.MEDIA_ROOT = str(media)
@@ -329,10 +329,10 @@ class TestArtifact(object):
         assert artifact.is_visible_to(users["u"][1]) == False
         assert artifact.is_visible_to(users["u"][2]) == False
 
-        assert artifact.get_absolute_url() == "/artifacts/%s" % filename
+        assert artifact.get_absolute_url() == f"/artifacts/{filename}"
 
 
-class TestShare(object):
+class TestShare:
     def test_str_and_url(self, users, settings, tmpdir):
         media = tmpdir.mkdir("media")
         settings.MEDIA_ROOT = str(media)
@@ -344,5 +344,5 @@ class TestShare(object):
         artifact = Artifact.objects.create(directory=directory, path=filename)
         share = Share.objects.create(artifact=artifact, user=users["u"][0])
 
-        assert str(share) == "%s -> %s" % (share.token, filename)
-        assert share.get_absolute_url() == "/shares/%s" % share.token
+        assert str(share) == f"{share.token} -> {filename}"
+        assert share.get_absolute_url() == f"/shares/{share.token}"
