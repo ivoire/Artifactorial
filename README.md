@@ -95,7 +95,7 @@ In order to setup an Artifactorial server from the sources, run:
     mkdir website
     cd website
     # Grab the sources
-    git clone https://github.com/ivoire/Artifactorial
+    git clone https://github.com/igaw/Artifactorial
     # Install the python dependencies
     virtualenv venv
     source venv/bin/activate
