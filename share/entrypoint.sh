@@ -33,4 +33,4 @@ python3 manage.py migrate --noinput
 echo "done"
 echo ""
 
-exec gunicorn3 --log-level debug --bind 0.0.0.0:80 --threads 10 --workers 4 --worker-tmp-dir /dev/shm website.wsgi
+exec gunicorn --log-level debug --bind 0.0.0.0:80 --threads 10 --workers 4 --worker-tmp-dir /dev/shm website.wsgi

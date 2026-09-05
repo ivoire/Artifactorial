@@ -1,14 +1,14 @@
-FROM debian:buster-slim
+FROM debian:trixie-slim
 
-LABEL maintainer="Rémi Duraffort <remi.duraffort@linaro.org>"
+LABEL maintainer="Daniel Wagner <wagi@monom.org>"
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install dependencies
 RUN apt-get update -q && \
-    apt-get install --no-install-recommends --yes gunicorn3 python3 python3-pip python3-yaml && \
-    python3 -m pip install --upgrade "django>=2.2,<=2.3" whitenoise && \
-    python3 -m pip install sentry-sdk && \
+    apt-get install --no-install-recommends --yes gunicorn python3 python3-pip python3-yaml && \
+    python3 -m pip install --break-system-packages --upgrade "django>=5.2,<5.3" whitenoise && \
+    python3 -m pip install --break-system-packages sentry-sdk && \
     # Cleanup
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
