@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${KC_POSTGRES_USER}
       POSTGRES_PASSWORD: ${KC_POSTGRES_PASSWORD}
     volumes:
-    - db:/var/lib/postgresql/data
+    - db:/var/lib/postgresql
     restart: unless-stopped
 
   web:
