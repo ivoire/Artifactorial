@@ -9,6 +9,7 @@ RUN apt-get update -q && \
     apt-get install --no-install-recommends --yes gunicorn python3 python3-pip python3-yaml && \
     python3 -m pip install --break-system-packages --upgrade "django>=5.2,<5.3" whitenoise && \
     python3 -m pip install --break-system-packages sentry-sdk && \
+    python3 -m pip install --break-system-packages "psycopg[binary]>=3.1,<4" && \
     # Cleanup
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

@@ -3,8 +3,9 @@ services:
   db:
     image: ${KC_POSTGRES_IMAGE}
     environment:
-      POSTGRES_USER: artiractorial
-      POSTGRES_PASSWORD: artifactorial-password
+      POSTGRES_DB: ${KC_POSTGRES_DB}
+      POSTGRES_USER: ${KC_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${KC_POSTGRES_PASSWORD}
     volumes:
     - db:/var/lib/postgresql/data
     restart: unless-stopped
@@ -12,6 +13,11 @@ services:
   web:
     build: .
     image: ${KC_IMAGE}
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${KC_POSTGRES_DB}
+      POSTGRES_USER: ${KC_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${KC_POSTGRES_PASSWORD}
     volumes:
     - data:/var/lib/artifactorial/
     - ./share/artifactorial.yaml:/etc/artifactorial.yaml:ro

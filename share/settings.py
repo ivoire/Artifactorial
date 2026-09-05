@@ -19,6 +19,17 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB", "artifactorial"),
+        "USER": os.environ.get("POSTGRES_USER", "artifactorial"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
+        "HOST": os.environ.get("POSTGRES_HOST", "db"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+    }
+}
+
 WHITENOISE_KEEP_ONLY_HASHED_FILES = True
 # STORAGES (Django 4.2+), not the deprecated STATICFILES_STORAGE --
 # still works today but STORAGES is the current, non-legacy setting.
