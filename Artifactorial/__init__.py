@@ -7,3 +7,7 @@
 # Author: Rémi Duraffort <remi.duraffort@linaro.org>
 #
 # SPDX-License-Identifier: MIT
+
+# Single source of truth for the release version: the release workflow
+# refuses to publish a vX.Y.Z tag that doesn't match this.
+__version__ = "0.6.0"

@@ -889,3 +889,17 @@ class TestDelete:
         assert response.status_code == 200
         assert Artifact.objects.filter(directory=d1).count() == 0
         assert not os.path.exists(path)
+
+
+class TestVersion:
+    def test_navbar_shows_release_version(self, client, db):
+        from Artifactorial import __version__
+
+        response = client.get(reverse("home"))
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert f">v{__version__}</a>" in content
+        assert (
+            f"https://github.com/igaw/Artifactorial/releases/tag/v{__version__}"
+            in content
+        )
