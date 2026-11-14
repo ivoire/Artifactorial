@@ -1,0 +1,119 @@
+name: Release
+
+# Cut a release by pushing a signed tag that matches Artifactorial.__version__:
+#   git tag -s v0.6.0 -m "Artifactorial 0.6.0" && git push origin v0.6.0
+# Tags with a pre-release suffix (v0.7.0-rc1) publish a pre-release and
+# don't move the `latest` image tag.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Tag matches __version__
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' Artifactorial/__init__.py)
+          if [ "v$version" != "$TAG" ]; then
+            echo "::error::Tag $TAG does not match __version__ ($version) in Artifactorial/__init__.py"
+            exit 1
+          fi
+
+      - name: CHANGELOG has an entry for this version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          .github/scripts/changelog-notes.sh "${TAG#v}" > notes.md
+          cat notes.md
+
+  ci:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
+  image:
+    needs: [verify, ci]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
+
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        id: build
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+  release:
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          .github/scripts/changelog-notes.sh "${TAG#v}" > notes.md
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:${TAG#v}"
+          {
+            echo
+            echo "## Container image"
+            echo
+            echo '```'
+            echo "docker pull $image"
+            echo "gh attestation verify oci://$image --repo $GITHUB_REPOSITORY"
+            echo '```'
+          } >> notes.md
+          prerelease=()
+          case "$TAG" in *-*) prerelease=(--prerelease) ;; esac
+          gh release create "$TAG" --verify-tag --title "Artifactorial ${TAG#v}" \
+            --notes-file notes.md "${prerelease[@]}"

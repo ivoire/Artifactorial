@@ -1,0 +1,17 @@
+# Categories for GitHub's auto-generated release notes (used for PR-based
+# notes; tagged releases take their notes from CHANGELOG.md).
+changelog:
+  exclude:
+    labels: [skip-changelog]
+    authors: [dependabot]
+  categories:
+    - title: Breaking changes
+      labels: [breaking]
+    - title: New features
+      labels: [enhancement]
+    - title: Bug fixes
+      labels: [bug]
+    - title: Dependencies
+      labels: [dependencies]
+    - title: Other changes
+      labels: ["*"]
