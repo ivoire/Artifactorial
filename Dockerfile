@@ -2,7 +2,7 @@ FROM debian:trixie-slim
 
 LABEL maintainer="Daniel Wagner <wagi@monom.org>"
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt-get update -q && \

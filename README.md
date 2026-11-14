@@ -110,7 +110,7 @@ Now you should configure the Django project by updating the settings in
  * add 'Artifactorial' to the **INSTALLED_APPS** list.
  * set **MEDIA_ROOT** to the directory where the artifacts will be stored
  * configure the database by updating the DATABASES field (see the [Django
-documentation](https://docs.djangoproject.com/en/1.9/ref/settings/#databases))
+documentation](https://docs.djangoproject.com/en/5.2/ref/settings/#databases))
  * import **Artifactorial.settings** in your project settings
 
 In **myproject/urls.py** add the url for Artifactorial. You can look at
@@ -128,7 +128,7 @@ For a developement server, run the Django mini-server:
     python manage.py runserver
 
 For a production server, have a look at the official [Django
-documentation](https://docs.djangoproject.com/en/1.9/howto/deployment/wsgi/modwsgi/).
+documentation](https://docs.djangoproject.com/en/5.2/howto/deployment/).
 You will have to also configure **DEBUG** and **ALLOW_HOST** variables.
 
 
@@ -219,3 +219,24 @@ Contributing
 
 If you want to contribute to Artifactorial, please fork it on github and send
 me some pull requests.
+
+
+Releasing
+=========
+
+Releases follow [Semantic Versioning](https://semver.org/) and are cut by
+pushing a tag; `.github/workflows/release.yml` does the rest.
+
+ 1. Bump `__version__` in **Artifactorial/__init__.py**, and move the
+    *Unreleased* entries in **CHANGELOG.md** under a new version heading.
+ 2. Merge that through a pull request so CI runs on it.
+ 3. Tag and push:
+
+        git tag -s v0.6.0 -m "Artifactorial 0.6.0"
+        git push origin v0.6.0
+
+The workflow refuses a tag that doesn't match `__version__` or has no
+CHANGELOG entry. It then runs CI, publishes `ghcr.io/igaw/artifactorial`
+(`linux/amd64` and `linux/arm64`, with SBOM and build provenance), and
+creates the GitHub Release from the CHANGELOG entry. A tag such as
+`v0.7.0-rc1` becomes a pre-release and leaves the `latest` image alone.
