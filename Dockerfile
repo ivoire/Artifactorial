@@ -1,18 +1,22 @@
-FROM debian:trixie-slim
+# Pinned by digest so Dependabot opens a PR (and CI rebuilds) whenever Debian
+# republishes trixie-slim, e.g. with security fixes.
+FROM debian:trixie-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2
 
 LABEL maintainer="Daniel Wagner <wagi@monom.org>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
+# Install Python, then the pinned dependencies from requirements.txt into a
+# venv (keeps pip from fighting Debian's own python3-* packages)
 RUN apt-get update -q && \
-    apt-get install --no-install-recommends --yes gunicorn python3 python3-pip python3-yaml && \
-    python3 -m pip install --break-system-packages --upgrade "django>=5.2,<5.3" whitenoise && \
-    python3 -m pip install --break-system-packages sentry-sdk && \
-    python3 -m pip install --break-system-packages "psycopg[binary]>=3.1,<4" && \
-    # Cleanup
+    apt-get install --no-install-recommends --yes python3 python3-venv && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+ENV PATH=/opt/venv/bin:$PATH
+COPY requirements.txt /tmp/requirements.txt
+RUN python3 -m venv /opt/venv && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
 
 # Create the django project
 WORKDIR /app/

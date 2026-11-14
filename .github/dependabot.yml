@@ -1,13 +1,30 @@
 version: 2
 updates:
+  # Workflow actions (SHA-pinned; Dependabot updates the pin and its # vX comment).
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # requirements*.in -> pip-compile'd requirements*.txt (transitives pinned too).
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # Stay on the 5.2 LTS (supported until April 2028); moving to the next
+      # LTS is a deliberate change, not a routine bump.
+      - dependency-name: "django"
+        versions: [">=5.3"]
+    groups:
+      # Routine bumps in one PR; majors still come one PR each.
+      python-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # Dockerfile base image, pinned by digest.
   - package-ecosystem: "docker"
     directory: "/"
     schedule:

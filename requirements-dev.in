@@ -1,0 +1,8 @@
+# Development and CI tools. Run `make lock` after editing.
+-c requirements.txt
+-r requirements.in
+black
+pytest
+pytest-cov
+pytest-django
+ruff

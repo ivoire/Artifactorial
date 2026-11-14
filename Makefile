@@ -8,7 +8,7 @@ clean:
 distclean: clean
 	docker volume rm -f artifactorial-data artifactorial-db
 
-.PHONY: lint format test
+.PHONY: lint format test lock
 
 lint:
 	black --check .
@@ -20,3 +20,9 @@ format:
 
 test:
 	pytest
+
+# Re-pin requirements*.txt from requirements*.in (needs `pip install pip-tools`).
+# Pass ARGS=--upgrade to move every pin to the newest allowed version.
+lock:
+	pip-compile -q --strip-extras --no-emit-index-url $(ARGS) --output-file requirements.txt requirements.in
+	pip-compile -q --strip-extras --no-emit-index-url $(ARGS) --output-file requirements-dev.txt requirements-dev.in

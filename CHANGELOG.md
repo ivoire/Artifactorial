@@ -10,6 +10,19 @@ this fork, https://github.com/igaw/Artifactorial.
 
 ## [Unreleased]
 
+### Changed
+
+- Dependencies are now pinned, including transitive ones: `requirements.in`
+  and `requirements-dev.in` list the direct dependencies, and `make lock`
+  compiles them into `requirements.txt` and `requirements-dev.txt`.
+  Dependabot keeps both up to date.
+- The Docker image installs from `requirements.txt` into a venv, so it uses
+  the same pinned versions as CI. gunicorn now comes from PyPI (27.x)
+  instead of Debian (23.x).
+- The Docker base image is pinned by digest, so Dependabot proposes Debian
+  security rebuilds.
+- Pull requests now build and smoke-test the Docker image.
+
 ## [0.6.0] - 2026-11-14
 
 First release from the maintained fork, and the first since v0.5 (2017).

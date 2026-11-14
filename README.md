@@ -221,6 +221,22 @@ If you want to contribute to Artifactorial, please fork it on github and send
 me some pull requests.
 
 
+Dependencies
+============
+
+Direct dependencies live in **requirements.in** (runtime) and
+**requirements-dev.in** (tests and linters). The **requirements*.txt** files
+pin every package, including transitive ones, and are generated from them:
+
+    pip install pip-tools
+    make lock                  # after editing a .in file
+    make lock ARGS=--upgrade   # move every pin to the newest allowed version
+
+Dependabot updates the pins, the GitHub Actions and the Docker base image
+weekly, and CI tests each of its pull requests. Django stays on the 5.2 LTS
+until a deliberate move to the next LTS.
+
+
 Releasing
 =========
 
